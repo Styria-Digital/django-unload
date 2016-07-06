@@ -21,4 +21,3 @@ class Command(BaseCommand):
         app_name = options.get('app')
         if app_name:
             app = get_app(app_name)
-            import ipdb; ipdb.set_trace()
