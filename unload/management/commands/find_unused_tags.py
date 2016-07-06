@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy as _
 
-from ...utils import get_project_path, get_app
+from ...utils import get_app
 
 
 class Command(BaseCommand):
@@ -18,10 +18,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        project_path = get_project_path()
-
         app_name = options.get('app')
         if app_name:
             app = get_app(app_name)
-
-
+            import ipdb; ipdb.set_trace()
