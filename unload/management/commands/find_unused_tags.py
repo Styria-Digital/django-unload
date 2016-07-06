@@ -2,12 +2,10 @@
 
 from __future__ import unicode_literals
 
-from os import getcwdu
-from os.path import isfile, join
-from sys import version_info
-
 from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy as _
+
+from ...utils import get_project_path, get_app
 
 
 class Command(BaseCommand):
@@ -19,16 +17,11 @@ class Command(BaseCommand):
             help=_('The name of the application that needs to be scanned'))
 
     def handle(self, *args, **options):
-        # Get the current working directory
-        cwd = getcwdu()
 
-        # Must be called from the Django project's directory
-        if not isfile(join(cwd, 'manage.py')):
-            msg = 'manage.py not found in the current working directory'
-            version_major = version_info[0]
-            if version_major == 3:
-                raise FileNotFoundError(msg)
-            else:
-                raise EnvironmentError(msg)
+        project_path = get_project_path()
 
-        app = options.get('app')
+        app_name = options.get('app')
+        if app_name:
+            app = get_app(app_name)
+
+
