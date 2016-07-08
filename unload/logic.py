@@ -54,7 +54,6 @@ class ProjectSearch(BaseSearch):
         super(ProjectSearch, self).__init__()
         self.project_templates = self.get_project_templates()
         self.app_templates = self.get_app_templates()
-        import ipdb; ipdb.set_trace()
 
     def get_project_templates(self):
         """
