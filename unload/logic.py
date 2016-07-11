@@ -27,8 +27,7 @@ class BaseSearch(object):
 
         for dirpath, dirnames, filenames in os.walk(template_dir):
             for filename in filenames:
-                if filename.endswith('.html'):
-                    templates.append(os.path.join(dirpath, filename))
+                templates.append(os.path.join(dirpath, filename))
 
         return templates
 
@@ -62,7 +61,10 @@ class ProjectSearch(BaseSearch):
 
         :returns: a list of full paths to templates
         """
-        project_dirs = settings.TEMPLATES[0]['DIRS']
+        project_dirs = []
+        for temp_setting in settings.TEMPLATES:
+            for directory in temp_setting['DIRS']:
+                project_dirs.append(directory)
         templates = []
 
         for d in project_dirs:
