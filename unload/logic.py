@@ -61,14 +61,10 @@ class ProjectSearch(BaseSearch):
 
         :returns: a list of full paths to templates
         """
-        project_dirs = []
+        templates = []
         for temp_setting in settings.TEMPLATES:
             for directory in temp_setting['DIRS']:
-                project_dirs.append(directory)
-        templates = []
-
-        for d in project_dirs:
-            templates += self.get_templates(template_dir=d)
+                templates += self.get_templates(template_dir=directory)
 
         return templates
 
