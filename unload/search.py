@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import os
+from mimetypes import guess_type
 
 from django.apps import apps
 from django.conf import settings
@@ -13,10 +14,12 @@ class BaseSearch(object):
 
     def get_templates(self, template_dir):
         """
-        Get full paths to the app's templates.
+        Get absolute paths to the templates located in the directory. All text
+        files are considered to be templates.
 
-        :template_dir: full path to the app's template directory
-        :returns: a list of full paths to the app's templates
+        :template_dir: the absolute path to the template directory
+        :returns: a list of absolute paths to the templates located in the
+                  directory
         """
 
         templates = []
@@ -27,13 +30,16 @@ class BaseSearch(object):
 
         for dirpath, dirnames, filenames in os.walk(template_dir):
             for filename in filenames:
-                templates.append(os.path.join(dirpath, filename))
+                filetype = guess_type(filename)
+                maintype, subtype = filetype.split('/')
+                if maintype == 'text':
+                    templates.append(os.path.join(dirpath, filename))
 
         return templates
 
     def get_app_template_dir(self, app_config):
         """
-        Get the full path to the app's template directory.
+        Get the absolute path to the app's template directory.
 
         :app_config: AppConfig object
         :returns: full path to the app's template directory
@@ -62,15 +68,15 @@ class ProjectSearch(BaseSearch):
         :returns: a list of full paths to templates
         """
         templates = []
-        for temp_setting in settings.TEMPLATES:
-            for directory in temp_setting['DIRS']:
+        for templates_setting in settings.TEMPLATES:
+            for directory in templates_setting['DIRS']:
                 templates += self.get_templates(template_dir=directory)
 
         return templates
 
     def get_app_templates(self):
         """
-        Get all templates tied to certain apps.
+        Get all templates that belong to apps installed in the project.
 
         :returns: a list of AppSearch objects
         """
@@ -87,7 +93,7 @@ class ProjectSearch(BaseSearch):
 
 class AppSearch(BaseSearch):
     """
-    Find all templates in the specified app.
+    Find all templates that belong to a certain app.
     """
 
     def __init__(self, app):
