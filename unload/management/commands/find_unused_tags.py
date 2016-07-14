@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy as _
 
+from ...logic import find_unused_tags
 from ...search import ProjectSearch, AppSearch
 from ...utils import get_app
 
@@ -19,9 +20,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        app_name = options.get('app')
+        app_name = options.get('app', None)
         if app_name:
             app = get_app(app_name)
-            AppSearch(app=app)
         else:
-            ProjectSearch()
+            app = None
+
+        find_unused_tags(app=app)
