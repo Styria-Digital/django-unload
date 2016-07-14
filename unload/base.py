@@ -16,6 +16,11 @@ class Template(BaseTemplate):
 
         self.tokens = self._get_tokens()
 
+        if not self.tokens:
+            raise ValueError('No tokens in the template!')
+        else:
+            self.templatetags_modules = self._get_templatetags_modules()
+
     def _get_tokens(self):
         """
         Get the list of tokens from the template source.
@@ -30,3 +35,28 @@ class Template(BaseTemplate):
 
         lexer = lexer_class(self.source, self.origin)
         return lexer.tokenize()
+
+    def _get_templatetags_modules(self):
+        """
+        Returns a dictionary of loaded templatetags modules and a list of line
+        numbers they are located at.
+
+        :returns: { 'module_name': [line_numbers] }
+        """
+
+        modules = {}
+        for token in self.tokens:
+            token_content = token.split_contents()
+            # Extract load blocks
+            if token.token_type == 2 and token_content[0] == 'load':
+                templatetags_modules = token_content[1:]
+                # Multiple modules can be imported in the same load block
+                for module in templatetags_modules:
+                    if module not in modules:
+                        modules[module] = [token.lineno]
+                    else:
+                        # The same module can be imported multiple times
+                        if token.lineno not in modules[module]:
+                            modules[module].append(token.lineno)
+
+        return modules
