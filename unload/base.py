@@ -5,6 +5,43 @@ from __future__ import unicode_literals
 from django.template.base import Lexer, Template as BaseTemplate
 
 
+# https://docs.djangoproject.com/en/1.9/ref/templates/builtins/#built-in-tag-reference
+BUILT_IN_TAGS = {
+    'as': None,
+    'autoescape': 'endautoescape',
+    'block': 'endblock',
+    'blocktrans': 'endblocktrans',
+    'comment': 'endcomment',
+    'csrf_token': None,
+    'cycle': None,
+    'debug': None,
+    'extends': None,
+    'filter': 'endfilter',
+    'firstof': None,
+    'for': 'endfor',
+    'elif': None,
+    'else': None,
+    'empty': None,
+    'if': 'endif',
+    'ifchanged': 'endifchanged',
+    'ifequal': 'endifequal',
+    'ifnotequal': 'endifnotequal',
+    'in': None,
+    'include': None,
+    'load': None,
+    'lorem': None,
+    'not': None,
+    'now': None,
+    'spaceless': 'endspaceless',
+    'ssi': None,
+    'templatetag': None,
+    'url': None,
+    'verbatim': 'endverbatim',
+    'widthratio': None,
+    'with': 'endwith'
+}
+
+
 class Template(BaseTemplate):
 
     def __init__(self, template_string, origin=None, name=None, engine=None):
@@ -17,9 +54,14 @@ class Template(BaseTemplate):
         self.tokens = self._get_tokens()
 
         if not self.tokens:
-            raise ValueError('No tokens in the template!')
+            self.loaded_modules = None
+            self.loaded_templatetags = None
+            self.status = 'No tokens found in the template'
         else:
-            self.templatetags_modules = self._get_templatetags_modules()
+            self.loaded_modules = self._get_loaded_templatetags_modules()
+            self.loaded_templatetags = self._get_loaded_templatetags()
+            # A placeholder (to be defined after the template is analyzed)
+            self.status = None
 
     def _get_tokens(self):
         """
@@ -36,10 +78,10 @@ class Template(BaseTemplate):
         lexer = lexer_class(self.source, self.origin)
         return lexer.tokenize()
 
-    def _get_templatetags_modules(self):
+    def _get_loaded_templatetags_modules(self):
         """
-        Returns a dictionary of loaded templatetags modules and a list of line
-        numbers they are located at.
+        Get the names of loaded templatetags modules and the line numbers they
+        are located at.
 
         :returns: { 'module_name': [line_numbers] }
         """
@@ -60,3 +102,21 @@ class Template(BaseTemplate):
                             modules[module].append(token.lineno)
 
         return modules
+
+    def _get_loaded_templatetags(self):
+        """
+        Get the list of custom template tags used in the template.
+
+        :returns: a list of custom template tags
+        """
+        loaded_tags = []
+        for token in self.tokens:
+            token_content = token.split_contents()
+            # Extract blocks that do not contain one of the built-in tags
+            if token.token_type == 2 and\
+                    token_content[0] not in BUILT_IN_TAGS and\
+                    token_content[0] not in list(set(BUILT_IN_TAGS.values())):
+                # Extract only the name of the template tag (ignore arguments)
+                loaded_tags.append(token_content[0])
+
+        return loaded_tags
