@@ -67,15 +67,18 @@ class Template(BaseTemplate):
         """
         Get the list of tokens from the template source.
 
+        A modified version of Django's compile_nodelist method (Template class)
+        https://github.com/django/django/blob/master/django/template/base.py#L221
+
         :returns: a list of Tokens
         """
+        # From Django's source code
         if self.engine.debug:
             from django.template.debug import DebugLexer
-            lexer_class = DebugLexer
+            lexer = DebugLexer(self.source, self.origin)
         else:
-            lexer_class = Lexer
+            lexer = Lexer(self.source, self.origin)
 
-        lexer = lexer_class(self.source, self.origin)
         return lexer.tokenize()
 
     def _get_loaded_templatetags_modules(self):
@@ -114,8 +117,8 @@ class Template(BaseTemplate):
             token_content = token.split_contents()
             # Extract blocks that do not contain one of the built-in tags
             if token.token_type == 2 and\
-                    token_content[0] not in BUILT_IN_TAGS and\
-                    token_content[0] not in list(set(BUILT_IN_TAGS.values())):
+                    token_content[0] not in BUILT_IN_TAGS.keys() and\
+                    token_content[0] not in set(BUILT_IN_TAGS.values()):
                 # Extract only the name of the template tag (ignore arguments)
                 loaded_tags.append(token_content[0])
 
