@@ -20,9 +20,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        app_name = options.get('app', None)
-        if app_name:
-            app = get_app(app_name)
+        app_label = options.get('app', None)
+        if app_label:
+            app = get_app(app_label)
         else:
             app = None
 
