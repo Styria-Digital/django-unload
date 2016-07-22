@@ -2,7 +2,13 @@
 
 from __future__ import unicode_literals
 
+from django.apps import apps
 from django.template.base import Lexer, Template as BaseTemplate
+
+from .settings import DJANGO_VERSION
+
+if DJANGO_VERSION > (1, 8):
+    from django.template.base import get_library
 
 
 # https://docs.djangoproject.com/en/1.9/ref/templates/builtins/#built-in-tag-reference
@@ -52,9 +58,26 @@ class Template(BaseTemplate):
             self.source = template_string
 
         self.tokens = self._get_tokens()
-
+        # The modules and tags manually specified (loaded) by the developer
         self.loaded_modules, self.loaded_tags = self._parse_load_block()
         self.used_templatetags = self._get_used_templatetags()
+        # Get the tags and filters available to this template
+        self.tags, self.filters = self._get_templatetags_members()
+
+    def _get_templatetags_members(self):
+        """
+        Get the names of tags and filters from available templatetags modules.
+
+        :returns: {'somelib': [tags]}, {'somelib': [filters]}
+        """
+        tags = {}
+        filters = {}
+        for module in self.loaded_modules:
+            lib = get_library(module)
+            tags[module] = lib.tags.keys()
+            filters[module] = lib.filters.keys()
+
+        return tags, filters
 
     def _get_tokens(self):
         """
@@ -125,7 +148,7 @@ class Template(BaseTemplate):
             token_content = token.split_contents()
             # Extract load blocks
             if token.token_type == 2 and token_content[0] == 'load':
-                # from syntax is used; individual tags are loaded
+                # FROM syntax is used; individual tags are loaded
                 if token_content >= 4 and token_content[-2] == 'from':
                     # Add loaded module
                     module = token_content[-1]
@@ -134,7 +157,7 @@ class Template(BaseTemplate):
                     loaded_tags = token_content[1:-2]
                     for tag in loaded_tags:
                         tags = add_tag(tags, tag, token.lineno)
-                # regular syntax
+                # Regular syntax
                 else:
                     # Multiple modules can be imported in the same load block
                     templatetags_modules = token_content[1:]
