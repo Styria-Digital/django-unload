@@ -2,7 +2,6 @@
 
 from __future__ import unicode_literals
 
-from django.apps import apps
 from django.template.base import Lexer, Template as BaseTemplate
 
 from .settings import DJANGO_VERSION
@@ -47,6 +46,32 @@ BUILT_IN_TAGS = {
     'with': 'endwith'
 }
 
+I18N_TAGS = {
+    'trans': 'endtrans',
+    'blocktrans': 'endblocktrans',
+    'plural': None,
+    'get_language_info_list': None,
+    'get_available_languages': None,
+    'get_language_info': None,
+    'language': None,
+    'get_current_language': None,
+    'get_current_language_bidi': None
+}
+
+L10N_TAGS = {
+    'localize': 'endlocalize'
+}
+
+CACHE_TAGS = {
+    'cache': 'endcache'
+}
+
+STATIC_TAGS = {
+    'static': None,
+    'get_media_prefix': None,
+    'get_static_prefix': None
+}
+
 
 class Template(BaseTemplate):
 
@@ -60,9 +85,29 @@ class Template(BaseTemplate):
         self.tokens = self._get_tokens()
         # The modules and tags manually specified (loaded) by the developer
         self.loaded_modules, self.loaded_tags = self._parse_load_block()
-        self.used_templatetags = self._get_used_templatetags()
+        self.used_tags = self._get_used_templatetags()
         # Get the tags and filters available to this template
         self.tags, self.filters = self._get_templatetags_members()
+        self.utilized_modules = self.get_utilized_modules()
+        self.utilized_tags = self.get_utilized_tags()
+
+    def get_utilized_tags(self):
+        pass
+
+    def get_utilized_modules(self):
+        """
+        Separates the loaded modules based on their usage.
+
+        :returns: {'module_name': Boolean}
+        """
+        module_used = {}
+        for module in self.loaded_modules:
+            used = False
+            for tag in self.used_templatetags:
+                if tag in self.tags[module]:
+                    used = True
+            module_used[module] = used
+        return module_used
 
     def _get_templatetags_members(self):
         """
@@ -178,7 +223,12 @@ class Template(BaseTemplate):
             # Extract blocks that do not contain one of the built-in tags
             if (token.token_type == 2 and
                     token_content[0] not in BUILT_IN_TAGS.keys() and
-                    token_content[0] not in set(BUILT_IN_TAGS.values())):
+                    # Skip built-in 'end' tags
+                    token_content[0] not in set(BUILT_IN_TAGS.values()) and
+                    token_content[0] not in set(I18N_TAGS.values()) and
+                    token_content[0] not in set(L10N_TAGS.values()) and
+                    token_content[0] not in set(STATIC_TAGS.values()) and
+                    token_content[0] not in set(CACHE_TAGS.values())):
                 # Extract only the name of the template tag (ignore arguments)
                 used_tags.append(token_content[0])
 
