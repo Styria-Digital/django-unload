@@ -4,73 +4,11 @@ from __future__ import unicode_literals
 
 from django.template.base import Lexer, Template as BaseTemplate
 
-from .settings import DJANGO_VERSION
+from .settings import (DJANGO_VERSION, BUILT_IN_TAGS,
+                       I18N_TAGS, L10N_TAGS, CACHE_TAGS, STATIC_TAGS)
 
 if DJANGO_VERSION > (1, 8):
     from django.template.base import get_library
-
-
-# https://docs.djangoproject.com/en/1.9/ref/templates/builtins/#built-in-tag-reference
-BUILT_IN_TAGS = {
-    'as': None,
-    'autoescape': 'endautoescape',
-    'block': 'endblock',
-    'blocktrans': 'endblocktrans',
-    'comment': 'endcomment',
-    'csrf_token': None,
-    'cycle': None,
-    'debug': None,
-    'extends': None,
-    'filter': 'endfilter',
-    'firstof': None,
-    'for': 'endfor',
-    'elif': None,
-    'else': None,
-    'empty': None,
-    'if': 'endif',
-    'ifchanged': 'endifchanged',
-    'ifequal': 'endifequal',
-    'ifnotequal': 'endifnotequal',
-    'in': None,
-    'include': None,
-    'load': None,
-    'lorem': None,
-    'not': None,
-    'now': None,
-    'spaceless': 'endspaceless',
-    'ssi': None,
-    'templatetag': None,
-    'url': None,
-    'verbatim': 'endverbatim',
-    'widthratio': None,
-    'with': 'endwith'
-}
-
-I18N_TAGS = {
-    'trans': 'endtrans',
-    'blocktrans': 'endblocktrans',
-    'plural': None,
-    'get_language_info_list': None,
-    'get_available_languages': None,
-    'get_language_info': None,
-    'language': None,
-    'get_current_language': None,
-    'get_current_language_bidi': None
-}
-
-L10N_TAGS = {
-    'localize': 'endlocalize'
-}
-
-CACHE_TAGS = {
-    'cache': 'endcache'
-}
-
-STATIC_TAGS = {
-    'static': None,
-    'get_media_prefix': None,
-    'get_static_prefix': None
-}
 
 
 class Template(BaseTemplate):
@@ -100,9 +38,9 @@ class Template(BaseTemplate):
         """
         utilized_tags = {}
 
-        for tag in self.used_tags:
+        for tag in self.loaded_tags:
             utilized = False
-            if tag in self.loaded_tags:
+            if tag in self.used_tags:
                 utilized = True
             utilized_tags[tag] = utilized
 
@@ -119,7 +57,7 @@ class Template(BaseTemplate):
         for module in self.loaded_modules:
             utilized = False
 
-            for tag in self.used_templatetags:
+            for tag in self.used_tags:
                 if tag in self.tags[module]:
                     utilized = True
                     break
