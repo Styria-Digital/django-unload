@@ -88,26 +88,45 @@ class Template(BaseTemplate):
         self.used_tags = self._get_used_templatetags()
         # Get the tags and filters available to this template
         self.tags, self.filters = self._get_templatetags_members()
+        # Find utilized tags and filters
         self.utilized_modules = self.get_utilized_modules()
         self.utilized_tags = self.get_utilized_tags()
 
     def get_utilized_tags(self):
-        pass
+        """
+        Separates the loaded tags based on their utilization.
+
+        :returns: {'tag_name': Boolean}
+        """
+        utilized_tags = {}
+
+        for tag in self.used_tags:
+            utilized = False
+            if tag in self.loaded_tags:
+                utilized = True
+            utilized_tags[tag] = utilized
+
+        return utilized_tags
 
     def get_utilized_modules(self):
         """
-        Separates the loaded modules based on their usage.
+        Separates the loaded modules based on their utilization.
 
         :returns: {'module_name': Boolean}
         """
-        module_used = {}
+        utilized_modules = {}
+
         for module in self.loaded_modules:
-            used = False
+            utilized = False
+
             for tag in self.used_templatetags:
                 if tag in self.tags[module]:
-                    used = True
-            module_used[module] = used
-        return module_used
+                    utilized = True
+                    break
+
+            utilized_modules[module] = utilized
+
+        return utilized_modules
 
     def _get_templatetags_members(self):
         """
