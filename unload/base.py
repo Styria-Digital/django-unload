@@ -5,9 +5,7 @@ from __future__ import unicode_literals
 from django.template.base import Lexer, Template as BaseTemplate
 
 from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, I18N_TAGS, L10N_TAGS,
-                       CACHE_TAGS, STATIC_TAGS, BUILT_IN_FILTERS,
-                       CACHE_FILTERS, FUTURE_FILTERS, I18N_FILTERS,
-                       L10N_FILTERS, STATIC_FILTERS, TZ_FILTERS)
+                       CACHE_TAGS, STATIC_TAGS, BUILT_IN_FILTERS)
 
 if DJANGO_VERSION > (1, 8):
     from django.template.base import get_library
@@ -23,31 +21,31 @@ class Template(BaseTemplate):
             self.source = template_string
 
         self.tokens = self._get_tokens()
-        # The modules and tags manually specified (loaded) by the developer
-        self.loaded_modules, self.loaded_tags = self._parse_load_block()
+        # The manually specified (loaded) modules and members (tags/filters)
+        self.loaded_modules, self.loaded_members = self._parse_load_block()
         self.used_tags = self._get_used_tags()
         self.used_filters = self._get_used_filters()
         # Get the tags and filters available to this template
         self.tags, self.filters = self._get_templatetags_members()
-        # Find utilized tags and filters
+        # Find utilized modules, tags and filters
         self.utilized_modules = self.get_utilized_modules()
-        self.utilized_tags = self.get_utilized_tags()
+        self.utilized_members = self.get_utilized_members()
 
-    def get_utilized_tags(self):
+    def get_utilized_members(self):
         """
         Separates the loaded tags based on their utilization.
 
         :returns: {'tag_name': Boolean}
         """
-        utilized_tags = {}
+        utilized_members = {}
 
-        for tag in self.loaded_tags:
+        for member in self.loaded_members:
             utilized = False
-            if tag in self.used_tags:
+            if member in self.used_tags or member in self.used_filters:
                 utilized = True
-            utilized_tags[tag] = utilized
+            utilized_members[member] = utilized
 
-        return utilized_tags
+        return utilized_members
 
     def get_utilized_modules(self):
         """
@@ -113,7 +111,7 @@ class Template(BaseTemplate):
         Get the names of loaded templatetags modules as well as individually
         loaded tags and the line numbers they are located at.
 
-        :returns: {'module_name': [line_numbers]}, {'tag_name': [line_numbers]}
+        :returns: {'module': [line_numbers]}, {'member': [line_numbers]}
         """
 
         def add_module(modules, module, line_number):
@@ -134,40 +132,41 @@ class Template(BaseTemplate):
 
             return modules
 
-        def add_tag(tags, tag, line_number):
+        def add_member(members, member, line_number):
             """
-            Add the tag's name and its line number to the tags dictionary
+            Add the member's (tag/filter) name and its line number to the
+            members dictionary.
 
-            :tags: the tags dictionary
-            :tag: the tag's name
-            :line_number: the line number at which the tag is loaded
-            :returns: a modified tags dictionary
+            :members: the members dictionary
+            :member: the member's name
+            :line_number: the line number at which the member is loaded
+            :returns: a modified members dictionary
             """
-            if tag not in tags:
-                tags[tag] = [line_number]
+            if member not in members:
+                members[member] = [line_number]
             else:
-                # The same tag can be loaded multiple times
-                if line_number not in tags[tag]:
-                    tags[tag].append(line_number)
+                # The same member can be loaded multiple times
+                if line_number not in members[member]:
+                    members[member].append(line_number)
 
-            return tags
+            return members
 
         modules = {}
-        tags = {}
+        members = {}
 
         for token in self.tokens:
             token_content = token.split_contents()
             # Extract load blocks
             if token.token_type == 2 and token_content[0] == 'load':
-                # FROM syntax is used; individual tags are loaded
+                # FROM syntax is used; individual members are loaded
                 if token_content >= 4 and token_content[-2] == 'from':
                     # Add loaded module
                     module = token_content[-1]
                     modules = add_module(modules, module, token.lineno)
-                    # Add loaded tags
-                    loaded_tags = token_content[1:-2]
-                    for tag in loaded_tags:
-                        tags = add_tag(tags, tag, token.lineno)
+                    # Add loaded members
+                    loaded_members = token_content[1:-2]
+                    for member in loaded_members:
+                        members = add_member(members, member, token.lineno)
                 # Regular syntax
                 else:
                     # Multiple modules can be imported in the same load block
@@ -175,7 +174,7 @@ class Template(BaseTemplate):
                     for module in templatetags_modules:
                         modules = add_module(modules, module, token.lineno)
 
-        return modules, tags
+        return modules, members
 
     def _get_used_tags(self):
         """
