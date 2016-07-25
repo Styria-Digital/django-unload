@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals
 
+import sys
+
 from django.template.base import Lexer, Template as BaseTemplate
 
 from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, I18N_TAGS, L10N_TAGS,
@@ -28,10 +30,99 @@ class Template(BaseTemplate):
         # Get the tags and filters available to this template
         self.tags, self.filters = self._get_templatetags_members()
         # Find utilized modules, tags and filters
-        self.utilized_modules = self.get_utilized_modules()
-        self.utilized_members = self.get_utilized_members()
+        self.utilized_modules = self._get_utilized_modules()
+        self.utilized_members = self._get_utilized_members()
 
-    def get_utilized_members(self):
+    def evaluate(self):
+        """
+        A public method for outputting the evaluation results to the console.
+
+        :returns: None
+        """
+        sys.stdout.write("\nEvaluating template: {}\n".format(self.name))
+        self._list_duplicate_module_loads()
+        self._list_duplicate_member_loads()
+        self._list_unutilized_modules()
+        self._list_unutilized_members()
+
+    def _list_duplicate_module_loads(self):
+        """
+        List duplicate module loads and the line numbers they are located at.
+
+        :returns: None
+        """
+        if self.loaded_modules:
+            sys.stdout.write("Duplicate module loads:\n")
+            duplicate_module_loads = False
+            for module in self.loaded_modules:
+                if len(self.loaded_modules[module]) > 1:
+                    lines = self.loaded_modules[module]
+                    duplicate_module_loads = True
+                    sys.stdout.write("\t{} || {}\n".format(
+                        module, ', '.join(map(str, lines))))
+            # No duplicate module loads were found
+            if not duplicate_module_loads:
+                sys.stdout.write("\tNo duplicate member loads!\n")
+
+    def _list_duplicate_member_loads(self):
+        """
+        List duplicate loads of tags and filters and the line numbers they are
+        located at.
+
+        :returns: None
+        """
+        if self.loaded_members:
+            sys.stdout.write("Duplicate member loads:\n")
+            duplicate_member_loads = False
+            for member in self.loaded_members:
+                if len(self.loaded_members[member]) > 1:
+                    lines = self.loaded_members[member]
+                    duplicate_member_loads = True
+                    sys.stdout.write("\t{} || {}\n".format(
+                        member, ', '.join(map(str, lines))))
+            # No duplicate member loads were found
+            if not duplicate_member_loads:
+                sys.stdout.write("\tNo duplicate member loads!\n")
+
+    def _list_unutilized_modules(self):
+        """
+        List unutilized modules.
+
+        :returns: None
+        """
+        if self.utilized_modules:
+            sys.stdout.write("Searching for unutilized modules...\n")
+            unutilized_modules = []
+            for module in self.utilized_modules:
+                if not self.utilized_modules[module]:
+                    unutilized_modules.append(module)
+
+            if unutilized_modules:
+                sys.stdout.write("\tUnutilized modules: {}\n".format(
+                    ', '.join(unutilized_modules)))
+            else:
+                sys.stdout.write("\tAll modules are utilized!\n")
+
+    def _list_unutilized_members(self):
+        """
+        List unutilized tags and filters.
+
+        :returns: None
+        """
+        if self.utilized_members:
+            sys.stdout.write("Searching for unutilized members...\n")
+            unutilized_members = []
+            for member in self.utilized_members:
+                if not self.utilized_members[member]:
+                    unutilized_members.append(member)
+
+            if unutilized_members:
+                sys.stdout.write("\tUnutilized modules: {}\n".format(
+                    ', '.join(unutilized_members)))
+            else:
+                sys.stdout.write("\tAll modules are utilized!\n")
+
+    def _get_utilized_members(self):
         """
         Separates the loaded tags based on their utilization.
 
@@ -47,7 +138,7 @@ class Template(BaseTemplate):
 
         return utilized_members
 
-    def get_utilized_modules(self):
+    def _get_utilized_modules(self):
         """
         Separates the loaded modules based on their utilization.
 
