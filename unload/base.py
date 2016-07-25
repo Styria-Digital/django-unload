@@ -4,8 +4,10 @@ from __future__ import unicode_literals
 
 from django.template.base import Lexer, Template as BaseTemplate
 
-from .settings import (DJANGO_VERSION, BUILT_IN_TAGS,
-                       I18N_TAGS, L10N_TAGS, CACHE_TAGS, STATIC_TAGS)
+from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, I18N_TAGS, L10N_TAGS,
+                       CACHE_TAGS, STATIC_TAGS, BUILT_IN_FILTERS,
+                       CACHE_FILTERS, FUTURE_FILTERS, I18N_FILTERS,
+                       L10N_FILTERS, STATIC_FILTERS, TZ_FILTERS)
 
 if DJANGO_VERSION > (1, 8):
     from django.template.base import get_library
@@ -23,7 +25,8 @@ class Template(BaseTemplate):
         self.tokens = self._get_tokens()
         # The modules and tags manually specified (loaded) by the developer
         self.loaded_modules, self.loaded_tags = self._parse_load_block()
-        self.used_tags = self._get_used_templatetags()
+        self.used_tags = self._get_used_tags()
+        self.used_filters = self._get_used_filters()
         # Get the tags and filters available to this template
         self.tags, self.filters = self._get_templatetags_members()
         # Find utilized tags and filters
@@ -61,6 +64,12 @@ class Template(BaseTemplate):
                 if tag in self.tags[module]:
                     utilized = True
                     break
+
+            if not utilized and self.used_filters:
+                for custom_filter in self.used_filters:
+                    if custom_filter in self.filters[module]:
+                        utilized = True
+                        break
 
             utilized_modules[module] = utilized
 
@@ -168,11 +177,11 @@ class Template(BaseTemplate):
 
         return modules, tags
 
-    def _get_used_templatetags(self):
+    def _get_used_tags(self):
         """
         Get the list of custom template tags used in the template.
 
-        :returns: a list of custom template tags
+        :returns: a list of custom tag names
         """
         used_tags = []
         for token in self.tokens:
@@ -190,3 +199,55 @@ class Template(BaseTemplate):
                 used_tags.append(token_content[0])
 
         return used_tags
+
+    def _get_used_filters(self):
+        """
+        Get the list of custom filters used in the template.
+
+        :returns: a list of custom filter names
+        """
+
+        def get_filters(content):
+            """
+            Get filter names from the token's content.
+
+            WARNING: Multiple filters can be used simultaneously, e.g.:
+                {{ some_list|safeseq|join:", " }}
+
+            :content: String; the token's content
+            :returns: a list of filter names
+            """
+            filters = []
+            split_content = content.split('|')
+
+            for item in split_content[1:]:
+                if ':' in item:
+                    item = item[:item.index(':')]
+                filters.append(item)
+
+            return filters
+
+        used_filters = []
+
+        for token in self.tokens:
+            filters = []
+            token_content = token.split_contents()
+
+            # Variable token
+            if token.token_type == 1 and '|' in token_content[0]:
+                filters += get_filters(token_content[0])
+
+            # Tag token
+            elif token.token_type == 2:
+                if '|' in ' '.join(token_content):
+                    for item in token_content:
+                        if '|' in item:
+                            filters += get_filters(item)
+
+            # Exclude built-in filters
+            for filter_name in filters:
+                if (filter_name not in BUILT_IN_FILTERS and
+                        filter_name not in used_filters):
+                    used_filters.append(filter_name)
+
+        return used_filters

@@ -5,6 +5,24 @@ import django
 
 DJANGO_VERSION = django.VERSION
 
+if DJANGO_VERSION > (1, 8):
+    from django.template.defaultfilters import register as filter_lib
+    from django.templatetags.cache import register as cache_lib
+    from django.templatetags.future import register as future_lib
+    from django.templatetags.i18n import register as i18n_lib
+    from django.templatetags.l10n import register as l10n_lib
+    from django.templatetags.static import register as static_lib
+    from django.templatetags.tz import register as tz_lib
+
+
+BUILT_IN_FILTERS = filter_lib.filters.keys()
+CACHE_FILTERS = cache_lib.filters.keys()
+FUTURE_FILTERS = future_lib.filters.keys()
+I18N_FILTERS = i18n_lib.filters.keys()
+L10N_FILTERS = l10n_lib.filters.keys()
+STATIC_FILTERS = static_lib.filters.keys()
+TZ_FILTERS = tz_lib.filters.keys()
+
 # https://docs.djangoproject.com/en/1.9/ref/templates/builtins/#built-in-tag-reference
 BUILT_IN_TAGS = {
     'as': None,
