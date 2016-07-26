@@ -4,13 +4,15 @@ from __future__ import unicode_literals
 
 import sys
 
+from distutils.version import StrictVersion
+
 from django.template.base import (
     Lexer, Template as BaseTemplate, InvalidTemplateLibrary)
 
 from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, I18N_TAGS, L10N_TAGS,
                        CACHE_TAGS, STATIC_TAGS, BUILT_IN_FILTERS)
 
-if DJANGO_VERSION > (1, 8):
+if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
     from django.template.base import get_library
 
 
