@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 
 import sys
 
-from django.template.base import Lexer, Template as BaseTemplate
+from django.template.base import (
+    Lexer, Template as BaseTemplate, InvalidTemplateLibrary)
 
 from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, I18N_TAGS, L10N_TAGS,
                        CACHE_TAGS, STATIC_TAGS, BUILT_IN_FILTERS)
@@ -33,94 +34,72 @@ class Template(BaseTemplate):
         self.utilized_modules = self._get_utilized_modules()
         self.utilized_members = self._get_utilized_members()
 
-    def evaluate(self):
+    def list_duplicates(self):
         """
-        A public method for outputting the evaluation results to the console.
+        List duplicate results, i.e. duplicate library, tag or filter loads.
+        If possible, tries to combine the results in the same row.
 
-        :returns: None
+        :returns: table (list of lists), header (list of header names)
         """
-        sys.stdout.write("\nEvaluating template: {}\n".format(self.name))
-        self._list_duplicate_module_loads()
-        self._list_duplicate_member_loads()
-        self._list_unutilized_modules()
-        self._list_unutilized_members()
 
-    def _list_duplicate_module_loads(self):
-        """
-        List duplicate module loads and the line numbers they are located at.
+        temp_table = {}
+        # Find duplicate library loads
+        for module in self.loaded_modules:
+            lines = self.loaded_modules[module]
+            lines_str = ', '.join(map(str, lines))
+            if len(lines) > 1 and lines_str not in temp_table.keys():
+                temp_table[lines_str] = [module, None]
 
-        :returns: None
-        """
-        if self.loaded_modules:
-            sys.stdout.write("Duplicate module loads:\n")
-            duplicate_module_loads = False
-            for module in self.loaded_modules:
-                if len(self.loaded_modules[module]) > 1:
-                    lines = self.loaded_modules[module]
-                    duplicate_module_loads = True
-                    sys.stdout.write("\t{} || {}\n".format(
-                        module, ', '.join(map(str, lines))))
-            # No duplicate module loads were found
-            if not duplicate_module_loads:
-                sys.stdout.write("\tNo duplicate member loads!\n")
+        # Find duplicate member loads
+        for member in self.loaded_members:
+            lines = self.loaded_members[member]
+            lines_str = ', '.join(map(str, lines))
+            if len(lines) > 1:
+                if lines_str not in temp_table.keys():
+                    temp_table[lines_str] = [None, member]
+                else:
+                    temp_table[lines_str][1] = member
 
-    def _list_duplicate_member_loads(self):
-        """
-        List duplicate loads of tags and filters and the line numbers they are
-        located at.
+        # Prepare output format
+        headers = ['Duplicate module', 'Duplicate tag/filter', 'Line number']
+        table = []
+        if temp_table:
+            for key in temp_table:
+                row = temp_table[key]
+                row.append(key)
+                table.append(row)
 
-        :returns: None
-        """
-        if self.loaded_members:
-            sys.stdout.write("Duplicate member loads:\n")
-            duplicate_member_loads = False
-            for member in self.loaded_members:
-                if len(self.loaded_members[member]) > 1:
-                    lines = self.loaded_members[member]
-                    duplicate_member_loads = True
-                    sys.stdout.write("\t{} || {}\n".format(
-                        member, ', '.join(map(str, lines))))
-            # No duplicate member loads were found
-            if not duplicate_member_loads:
-                sys.stdout.write("\tNo duplicate member loads!\n")
+        return table, headers
 
-    def _list_unutilized_modules(self):
+    def list_unutilized_items(self):
         """
-        List unutilized modules.
-
-        :returns: None
+        List unutilized modules, tags and filters in a single table
         """
+        modules = []
+        members = []
+        # List unutilized modules
         if self.utilized_modules:
-            sys.stdout.write("Searching for unutilized modules...\n")
-            unutilized_modules = []
             for module in self.utilized_modules:
                 if not self.utilized_modules[module]:
-                    unutilized_modules.append(module)
+                    modules.append(module)
 
-            if unutilized_modules:
-                sys.stdout.write("\tUnutilized modules: {}\n".format(
-                    ', '.join(unutilized_modules)))
-            else:
-                sys.stdout.write("\tAll modules are utilized!\n")
-
-    def _list_unutilized_members(self):
-        """
-        List unutilized tags and filters.
-
-        :returns: None
-        """
+        # List unutilized tags/filters
         if self.utilized_members:
-            sys.stdout.write("Searching for unutilized members...\n")
-            unutilized_members = []
             for member in self.utilized_members:
                 if not self.utilized_members[member]:
-                    unutilized_members.append(member)
+                    members.append(member)
 
-            if unutilized_members:
-                sys.stdout.write("\tUnutilized modules: {}\n".format(
-                    ', '.join(unutilized_members)))
-            else:
-                sys.stdout.write("\tAll modules are utilized!\n")
+        if len(modules) > len(members):
+            diff = len(modules) - len(members)
+            members += [None] * diff
+        else:
+            diff = len(members) - len(modules)
+            modules += [None] * diff
+
+        headers = ['Unutilized module', 'Unutilized tag/filter']
+        table = zip(modules, members)
+
+        return table, headers
 
     def _get_utilized_members(self):
         """
@@ -173,7 +152,14 @@ class Template(BaseTemplate):
         tags = {}
         filters = {}
         for module in self.loaded_modules:
-            lib = get_library(module)
+            try:
+                lib = get_library(module)
+            except InvalidTemplateLibrary:
+                msg = ('Unable to locate the loaded library! Library: {}; '
+                       'Template: {}\n').format(module, self.name)
+                sys.stdout.write(msg)
+                tags[module] = []
+                continue
             tags[module] = lib.tags.keys()
             filters[module] = lib.filters.keys()
 
