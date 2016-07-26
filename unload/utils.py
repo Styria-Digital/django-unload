@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 import io
-
 from django.apps import apps
 
 
@@ -22,7 +21,7 @@ def get_app(app_label):
     return app
 
 
-def open_template(filepath, encoding='UTF-8'):
+def get_contents(filepath, encoding='UTF-8'):
     """
     Read the contents of the template file.
 
