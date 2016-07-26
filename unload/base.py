@@ -2,12 +2,14 @@
 
 from __future__ import unicode_literals
 
+from distutils.version import StrictVersion
+
 from django.apps import apps
 from django.template.base import Lexer, Template as BaseTemplate
 
 from .settings import DJANGO_VERSION
 
-if DJANGO_VERSION > (1, 8):
+if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
     from django.template.base import get_library
 
 

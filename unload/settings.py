@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import django
+from django import get_version
 
-DJANGO_VERSION = django.VERSION
+DJANGO_VERSION = get_version()
