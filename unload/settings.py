@@ -7,7 +7,7 @@ from django import get_version
 
 DJANGO_VERSION = get_version()
 
-if StrictVersion(DJANGO_VERSION) < StrictVersion('1.8'):
+if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
     from django.template.defaultfilters import register as filter_lib
     from django.templatetags.cache import register as cache_lib
     from django.templatetags.future import register as future_lib

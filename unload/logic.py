@@ -8,9 +8,12 @@ from tabulate import tabulate
 
 from django.template.base import TemplateSyntaxError
 from django.template.loader import get_template
+from pprint import pprint
+from django.template.backends.django import DjangoTemplates
+from django.conf import settings
 
 from .base import Template
-from .utils import get_contents
+from .utils import get_contents, get_package_locations, get_template_files
 from .search import AppSearch, ProjectSearch
 
 
@@ -18,40 +21,44 @@ def find_unused_tags(app=None):
     """
     To be changed in the near future!
     """
-    app_search = None
-    project_search = None
+    template_settings = settings.TEMPLATES
+    for params in template_settings:
+        backend = params.pop('BACKEND')
 
-    if app:
-        app_search = AppSearch(app=app)
-        process_app_templates(app_search=app_search)
-    else:
-        project_search = ProjectSearch()
+        if backend == 'django.template.backends.django.DjangoTemplates':
+            templates = []
 
-        for template_path in project_search.project_templates:
-            process_template(template_path)
+            params['NAME'] = 'django'
+            django_templates = DjangoTemplates(params=params)
 
-        for app_search in project_search.app_templates:
-            process_app_templates(app_search=app_search)
+            # Get the locations of installed packages
+            pkg_locations = get_package_locations()
+            # Get template directories located within the project
+            for directory in django_templates.template_dirs:
+                within_project = True
+                for location in pkg_locations:
+                    if directory.startswith(location):
+                        within_project = False
+                        break
+                # Only one app needs to be scanned
+                if app:
+                    if not directory.startswith(app.path):
+                        continue
+                # Get the template files from the directory
+                if within_project:
+                    templates += get_template_files(directory)
+
+        if templates:
+            for template in templates:
+                import ipdb; ipdb.set_trace()
+                process_template(template, django_templates.engine)
 
 
-def process_app_templates(app_search):
+def process_template(filepath, engine):
     """
     To be changed in the near future!
     """
-    for template_path in app_search.templates:
-        process_template(template_path)
 
-
-def process_template(filepath):
-    """
-    To be changed in the near future!
-    """
-    try:
-        base_template = get_template(filepath)
-    except TemplateSyntaxError as tse:
-        return sys.stdout.write('Unable to open template: {}\n'.format(filepath))
-
-    engine = base_template.template.engine
     source = get_contents(filepath=filepath,
                           encoding=engine.file_charset)
 
