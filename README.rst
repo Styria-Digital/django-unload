@@ -7,7 +7,7 @@ Requirements
 ------------
 
 * Python 2.7+, 3.3+
-* Django 1.8+, <1.9
+* Django 1.8 (1.9 support will be added later)
 
 
 Setup

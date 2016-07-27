@@ -9,8 +9,8 @@ from distutils.version import StrictVersion
 from django.template.base import (
     Lexer, Template as BaseTemplate, InvalidTemplateLibrary)
 
-from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, I18N_TAGS, L10N_TAGS,
-                       CACHE_TAGS, STATIC_TAGS, BUILT_IN_FILTERS)
+from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, BUILT_IN_TAG_VALUES,
+                       BUILT_IN_FILTERS)
 
 if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
     from django.template.base import get_library
@@ -226,11 +226,7 @@ class Template(BaseTemplate):
             if (token.token_type == 2 and
                     token_content[0] not in BUILT_IN_TAGS.keys() and
                     # Skip built-in 'end' tags
-                    token_content[0] not in set(BUILT_IN_TAGS.values()) and
-                    token_content[0] not in set(I18N_TAGS.values()) and
-                    token_content[0] not in set(L10N_TAGS.values()) and
-                    token_content[0] not in set(STATIC_TAGS.values()) and
-                    token_content[0] not in set(CACHE_TAGS.values())):
+                    token_content[0] not in BUILT_IN_TAG_VALUES):
                 # Extract only the name of the template tag (ignore arguments)
                 used_tags.append(token_content[0])
 

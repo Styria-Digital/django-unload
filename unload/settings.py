@@ -86,3 +86,7 @@ STATIC_TAGS = {
     'get_media_prefix': None,
     'get_static_prefix': None
 }
+
+BUILT_IN_TAG_VALUES = set(BUILT_IN_TAGS.values() + I18N_TAGS.values() +
+                          L10N_TAGS.values() + CACHE_TAGS.values() +
+                          STATIC_TAGS.values())
