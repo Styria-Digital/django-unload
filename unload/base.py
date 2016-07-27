@@ -103,6 +103,48 @@ class Template(BaseTemplate):
 
         return table, headers
 
+    def _get_utilized_members(self):
+        """
+        Separates the loaded tags based on their utilization.
+
+        :returns: {'tag_name': Boolean}
+        """
+        utilized_members = {}
+
+        for member in self.loaded_members:
+            utilized = False
+            if member in self.used_tags or member in self.used_filters:
+                utilized = True
+            utilized_members[member] = utilized
+
+        return utilized_members
+
+    def _get_utilized_modules(self):
+        """
+        Separates the loaded modules based on their utilization.
+
+        :returns: {'module_name': Boolean}
+        """
+        utilized_modules = {}
+
+        for module in self.loaded_modules:
+            utilized = False
+
+            for tag in self.used_tags:
+                if tag in self.tags[module]:
+                    utilized = True
+                    break
+
+            if not utilized and self.used_filters:
+                for custom_filter in self.used_filters:
+                    if custom_filter in self.filters[module]:
+                        utilized = True
+                        break
+
+            utilized_modules[module] = utilized
+
+        return utilized_modules
+
     def _get_templatetags_members(self):
         """
         Get the names of tags and filters from available templatetags modules.

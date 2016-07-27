@@ -50,7 +50,6 @@ def find_unused_tags(app=None):
 
         if templates:
             for template in templates:
-                import ipdb; ipdb.set_trace()
                 process_template(template, django_templates.engine)
 
 
