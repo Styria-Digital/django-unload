@@ -2,52 +2,18 @@
 
 from __future__ import unicode_literals
 
+import sys
+
 from distutils.version import StrictVersion
 
-from django.apps import apps
-from django.template.base import Lexer, Template as BaseTemplate
+from django.template.base import (
+    Lexer, Template as BaseTemplate, InvalidTemplateLibrary)
 
-from .settings import DJANGO_VERSION
+from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, BUILT_IN_TAG_VALUES,
+                       BUILT_IN_FILTERS)
 
 if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
     from django.template.base import get_library
-
-
-# https://docs.djangoproject.com/en/1.9/ref/templates/builtins/#built-in-tag-reference
-BUILT_IN_TAGS = {
-    'as': None,
-    'autoescape': 'endautoescape',
-    'block': 'endblock',
-    'blocktrans': 'endblocktrans',
-    'comment': 'endcomment',
-    'csrf_token': None,
-    'cycle': None,
-    'debug': None,
-    'extends': None,
-    'filter': 'endfilter',
-    'firstof': None,
-    'for': 'endfor',
-    'elif': None,
-    'else': None,
-    'empty': None,
-    'if': 'endif',
-    'ifchanged': 'endifchanged',
-    'ifequal': 'endifequal',
-    'ifnotequal': 'endifnotequal',
-    'in': None,
-    'include': None,
-    'load': None,
-    'lorem': None,
-    'not': None,
-    'now': None,
-    'spaceless': 'endspaceless',
-    'ssi': None,
-    'templatetag': None,
-    'url': None,
-    'verbatim': 'endverbatim',
-    'widthratio': None,
-    'with': 'endwith'
-}
 
 
 class Template(BaseTemplate):
@@ -60,11 +26,82 @@ class Template(BaseTemplate):
             self.source = template_string
 
         self.tokens = self._get_tokens()
-        # The modules and tags manually specified (loaded) by the developer
-        self.loaded_modules, self.loaded_tags = self._parse_load_block()
-        self.used_templatetags = self._get_used_templatetags()
+        # The manually specified (loaded) modules and members (tags/filters)
+        self.loaded_modules, self.loaded_members = self._parse_load_block()
+        self.used_tags = self._get_used_tags()
+        self.used_filters = self._get_used_filters()
         # Get the tags and filters available to this template
         self.tags, self.filters = self._get_templatetags_members()
+        # Find utilized modules, tags and filters
+        self.utilized_modules = self._get_utilized_modules()
+        self.utilized_members = self._get_utilized_members()
+
+    def list_duplicates(self):
+        """
+        List duplicate results, i.e. duplicate library, tag or filter loads.
+        If possible, tries to combine the results in the same row.
+
+        :returns: table (list of lists), header (list of header names)
+        """
+
+        temp_table = {}
+        # Find duplicate library loads
+        for module in self.loaded_modules:
+            lines = self.loaded_modules[module]
+            lines_str = ', '.join(map(str, lines))
+            if len(lines) > 1 and lines_str not in temp_table.keys():
+                temp_table[lines_str] = [module, None]
+
+        # Find duplicate member loads
+        for member in self.loaded_members:
+            lines = self.loaded_members[member]
+            lines_str = ', '.join(map(str, lines))
+            if len(lines) > 1:
+                if lines_str not in temp_table.keys():
+                    temp_table[lines_str] = [None, member]
+                else:
+                    temp_table[lines_str][1] = member
+
+        # Prepare output format
+        headers = ['Duplicate module', 'Duplicate tag/filter', 'Line number']
+        table = []
+        if temp_table:
+            for key in temp_table:
+                row = temp_table[key]
+                row.append(key)
+                table.append(row)
+
+        return table, headers
+
+    def list_unutilized_items(self):
+        """
+        List unutilized modules, tags and filters in a single table
+        """
+        modules = []
+        members = []
+        # List unutilized modules
+        if self.utilized_modules:
+            for module in self.utilized_modules:
+                if not self.utilized_modules[module]:
+                    modules.append(module)
+
+        # List unutilized tags/filters
+        if self.utilized_members:
+            for member in self.utilized_members:
+                if not self.utilized_members[member]:
+                    members.append(member)
+
+        if len(modules) > len(members):
+            diff = len(modules) - len(members)
+            members += [None] * diff
+        else:
+            diff = len(members) - len(modules)
+            modules += [None] * diff
+
+        headers = ['Unutilized module', 'Unutilized tag/filter']
+        table = zip(modules, members)
+
+        return table, headers
 
     def _get_templatetags_members(self):
         """
@@ -75,7 +112,14 @@ class Template(BaseTemplate):
         tags = {}
         filters = {}
         for module in self.loaded_modules:
-            lib = get_library(module)
+            try:
+                lib = get_library(module)
+            except InvalidTemplateLibrary:
+                msg = ('Unable to locate the loaded library! Library: {}; '
+                       'Template: {}\n').format(module, self.name)
+                sys.stdout.write(msg)
+                tags[module] = []
+                continue
             tags[module] = lib.tags.keys()
             filters[module] = lib.filters.keys()
 
@@ -104,7 +148,7 @@ class Template(BaseTemplate):
         Get the names of loaded templatetags modules as well as individually
         loaded tags and the line numbers they are located at.
 
-        :returns: {'module_name': [line_numbers]}, {'tag_name': [line_numbers]}
+        :returns: {'module': [line_numbers]}, {'member': [line_numbers]}
         """
 
         def add_module(modules, module, line_number):
@@ -125,40 +169,41 @@ class Template(BaseTemplate):
 
             return modules
 
-        def add_tag(tags, tag, line_number):
+        def add_member(members, member, line_number):
             """
-            Add the tag's name and its line number to the tags dictionary
+            Add the member's (tag/filter) name and its line number to the
+            members dictionary.
 
-            :tags: the tags dictionary
-            :tag: the tag's name
-            :line_number: the line number at which the tag is loaded
-            :returns: a modified tags dictionary
+            :members: the members dictionary
+            :member: the member's name
+            :line_number: the line number at which the member is loaded
+            :returns: a modified members dictionary
             """
-            if tag not in tags:
-                tags[tag] = [line_number]
+            if member not in members:
+                members[member] = [line_number]
             else:
-                # The same tag can be loaded multiple times
-                if line_number not in tags[tag]:
-                    tags[tag].append(line_number)
+                # The same member can be loaded multiple times
+                if line_number not in members[member]:
+                    members[member].append(line_number)
 
-            return tags
+            return members
 
         modules = {}
-        tags = {}
+        members = {}
 
         for token in self.tokens:
             token_content = token.split_contents()
             # Extract load blocks
             if token.token_type == 2 and token_content[0] == 'load':
-                # FROM syntax is used; individual tags are loaded
+                # FROM syntax is used; individual members are loaded
                 if token_content >= 4 and token_content[-2] == 'from':
                     # Add loaded module
                     module = token_content[-1]
                     modules = add_module(modules, module, token.lineno)
-                    # Add loaded tags
-                    loaded_tags = token_content[1:-2]
-                    for tag in loaded_tags:
-                        tags = add_tag(tags, tag, token.lineno)
+                    # Add loaded members
+                    loaded_members = token_content[1:-2]
+                    for member in loaded_members:
+                        members = add_member(members, member, token.lineno)
                 # Regular syntax
                 else:
                     # Multiple modules can be imported in the same load block
@@ -166,13 +211,13 @@ class Template(BaseTemplate):
                     for module in templatetags_modules:
                         modules = add_module(modules, module, token.lineno)
 
-        return modules, tags
+        return modules, members
 
-    def _get_used_templatetags(self):
+    def _get_used_tags(self):
         """
         Get the list of custom template tags used in the template.
 
-        :returns: a list of custom template tags
+        :returns: a list of custom tag names
         """
         used_tags = []
         for token in self.tokens:
@@ -180,8 +225,61 @@ class Template(BaseTemplate):
             # Extract blocks that do not contain one of the built-in tags
             if (token.token_type == 2 and
                     token_content[0] not in BUILT_IN_TAGS.keys() and
-                    token_content[0] not in set(BUILT_IN_TAGS.values())):
+                    # Skip built-in 'end' tags
+                    token_content[0] not in BUILT_IN_TAG_VALUES):
                 # Extract only the name of the template tag (ignore arguments)
                 used_tags.append(token_content[0])
 
         return used_tags
+
+    def _get_used_filters(self):
+        """
+        Get the list of custom filters used in the template.
+
+        :returns: a list of custom filter names
+        """
+
+        def get_filters(content):
+            """
+            Get filter names from the token's content.
+
+            WARNING: Multiple filters can be used simultaneously, e.g.:
+                {{ some_list|safeseq|join:", " }}
+
+            :content: String; the token's content
+            :returns: a list of filter names
+            """
+            filters = []
+            split_content = content.split('|')
+
+            for item in split_content[1:]:
+                if ':' in item:
+                    item = item[:item.index(':')]
+                filters.append(item)
+
+            return filters
+
+        used_filters = []
+
+        for token in self.tokens:
+            filters = []
+            token_content = token.split_contents()
+
+            # Variable token
+            if token.token_type == 1 and '|' in token_content[0]:
+                filters += get_filters(token_content[0])
+
+            # Tag token
+            elif token.token_type == 2:
+                if '|' in ' '.join(token_content):
+                    for item in token_content:
+                        if '|' in item:
+                            filters += get_filters(item)
+
+            # Exclude built-in filters
+            for filter_name in filters:
+                if (filter_name not in BUILT_IN_FILTERS and
+                        filter_name not in used_filters):
+                    used_filters.append(filter_name)
+
+        return used_filters

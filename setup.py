@@ -17,6 +17,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'django>=1.8',
+        'tabulate==0.7.5',
     ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

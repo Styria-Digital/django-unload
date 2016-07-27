@@ -2,11 +2,15 @@
 
 from __future__ import unicode_literals
 
+import sys
+
+from tabulate import tabulate
+
 from django.template.base import TemplateSyntaxError
 from django.template.loader import get_template
 
 from .base import Template
-from .utils import open_template
+from .utils import get_contents
 from .search import AppSearch, ProjectSearch
 
 
@@ -45,11 +49,25 @@ def process_template(filepath):
     try:
         base_template = get_template(filepath)
     except TemplateSyntaxError as tse:
-        print filepath
-        return
+        return sys.stdout.write('Unable to open template: {}\n'.format(filepath))
 
     engine = base_template.template.engine
-    source = open_template(filepath=filepath,
-                           encoding=engine.file_charset)
+    source = get_contents(filepath=filepath,
+                          encoding=engine.file_charset)
 
     template = Template(template_string=source, engine=engine, name=filepath)
+    duplicate_table, duplicate_headers = template.list_duplicates()
+    unutilized_table, unutilized_headers = template.list_unutilized_items()
+    add_newline = False
+    if duplicate_table or unutilized_table:
+        sys.stdout.write(template.name + '\n')
+        add_newline = True
+    if duplicate_table:
+        sys.stdout.write(tabulate(duplicate_table, duplicate_headers,
+                                  tablefmt='psql') + '\n')
+    if unutilized_table:
+        sys.stdout.write(tabulate(unutilized_table, unutilized_headers,
+                                  tablefmt='psql') + '\n')
+
+    if add_newline:
+        sys.stdout.write('\n')

@@ -25,15 +25,13 @@ class BaseSearch(object):
         templates = []
 
         # No template directories were found
-        if not template_dir:
-            return templates
-
-        for dirpath, dirnames, filenames in os.walk(template_dir):
-            for filename in filenames:
-                filetype = guess_type(filename)
-                maintype, subtype = filetype[0].split('/')
-                if maintype == 'text':
-                    templates.append(os.path.join(dirpath, filename))
+        if template_dir:
+            for dirpath, dirnames, filenames in os.walk(template_dir):
+                for filename in filenames:
+                    filetype = guess_type(filename)
+                    maintype, subtype = filetype[0].split('/')
+                    if maintype == 'text':
+                        templates.append(os.path.join(dirpath, filename))
 
         return templates
 
