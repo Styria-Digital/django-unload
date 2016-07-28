@@ -7,7 +7,7 @@ from distutils.version import StrictVersion
 from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy as _
 
-from ...logic import find_unused_tags
+from ...logic import list_unnecessary_loads
 from ...utils import get_app
 from ...settings import DJANGO_VERSION
 
@@ -19,19 +19,19 @@ elif StrictVersion(DJANGO_VERSION) > StrictVersion('1.9'):
 
 
 class Command(BaseCommand):
-    help = 'List unused template tags'
+    help = 'List unutilized templatetag libraries'
 
     def add_arguments(self, parser):
         parser.add_argument(
             '-a', '--app', nargs='?', type=str, action='store', required=False,
-            help=_('The name of the application that needs to be scanned'))
+            help=_('The label of the application that needs to be scanned'))
 
     def handle(self, *args, **options):
-
+        # Find the app
         app_label = options.get('app', None)
         if app_label:
             app = get_app(app_label)
         else:
             app = None
 
-        find_unused_tags(app=app)
+        list_unnecessary_loads(app=app)

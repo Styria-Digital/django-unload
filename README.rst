@@ -32,7 +32,9 @@ Scan all template files in the specified app: ``$ python manage.py find_unused_t
 Output
 ------
 The output is sent to the console. Although all template files are scanned, only templates with issues and the issues in question are displayed. The issues are displayed in two tables:
+
 1. The first table points to duplicate loads which can sometimes be identical. The second table
+
 2. The second table simply lists unutilized modules, tags and filters.
 
 Example
@@ -49,7 +51,7 @@ Example
 
 +---------------------------+-------------------------+
 | Unutilized module         |   Unutilized tag/filter |
-+---------------------------+-------------------------+
++===========================+=========================+
 | some_module               | some_tag                |
 | some_other_module         | some_filter             |
 +---------------------------+-------------------------+

@@ -58,6 +58,12 @@ def get_package_locations():
 
 
 def get_template_files(template_dir):
+    """
+    Scan the provided template directory and its subdirectories for template
+    files.
+
+    :returns: a list of absolute paths to template files
+    """
     templates = []
     for dirpath, dirnames, filenames in os.walk(template_dir):
         for filename in filenames:
