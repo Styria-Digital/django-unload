@@ -25,9 +25,9 @@ Usage
 -----
 The plugin is used as a command line tool. It can either be used to scan all template files in the project or the templates in the specified Django app.
 
-Scan all template files in the project: ``$ python manage.py find_unused_tags``.
+Scan all template files in the project: ``$ python manage.py find_unnecessary_loads``.
 
-Scan all template files in the specified app: ``$ python manage.py find_unused_tags --app <app_name>``.
+Scan all template files in the specified app: ``$ python manage.py find_unnecessary_loads --app <app_name>``.
 
 Output
 ------
