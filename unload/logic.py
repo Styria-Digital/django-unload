@@ -6,68 +6,99 @@ import sys
 
 from tabulate import tabulate
 
-from django.template.base import TemplateSyntaxError
-from django.template.loader import get_template
+from django.template.backends.django import DjangoTemplates
+from django.conf import settings
 
 from .base import Template
-from .utils import get_contents
-from .search import AppSearch, ProjectSearch
+from .utils import get_contents, get_package_locations, get_template_files
 
 
-def find_unused_tags(app=None):
+def list_unnecessary_loads(app=None):
     """
-    To be changed in the near future!
+    Scan the project directory tree for template files and process each and
+    every one of them.
+
+    :app: AppConfig object
+
+    :returns: None (outputs to the console)
     """
-    app_search = None
-    project_search = None
+    template_settings = settings.TEMPLATES
+    for params in template_settings:
+        backend = params.pop('BACKEND')
+        templates = []
 
-    if app:
-        app_search = AppSearch(app=app)
-        process_app_templates(app_search=app_search)
-    else:
-        project_search = ProjectSearch()
+        if backend == 'django.template.backends.django.DjangoTemplates':
+            params['NAME'] = 'django'
+            django_templates = DjangoTemplates(params=params)
 
-        for template_path in project_search.project_templates:
-            process_template(template_path)
+            # Get the locations of installed packages
+            pkg_locations = get_package_locations()
+            # Get template directories located within the project
+            for directory in django_templates.template_dirs:
+                within_project = True
+                for location in pkg_locations:
+                    if directory.startswith(location):
+                        within_project = False
+                        break
+                # Get the template files from the directory
+                if within_project:
+                    # Only one app needs to be scanned
+                    if app:
+                        if directory.startswith(app.path):
+                            templates = get_template_files(directory)
+                            break
+                    else:
+                        templates += get_template_files(directory)
+        else:
+            sys.stdout.write(('Only the Django Template Engine is currently'
+                              'supported!\n'))
 
-        for app_search in project_search.app_templates:
-            process_app_templates(app_search=app_search)
+        if templates:
+            has_issues = False
+            for template in templates:
+                status = process_template(template, django_templates.engine)
+                if status:
+                    has_issues = status
+            if not has_issues:
+                sys.stdout.write('Your templates are clean!\n')
+        else:
+            sys.stdout.write('No templates were found!\n')
 
 
-def process_app_templates(app_search):
+def process_template(filepath, engine):
     """
-    To be changed in the near future!
-    """
-    for template_path in app_search.templates:
-        process_template(template_path)
+    Process the specified template
 
+    :filepath: String; the absolute path to the template file
+    :engine: Engine object
 
-def process_template(filepath):
+    :returns: Boolean (does the template file have issues or not)
     """
-    To be changed in the near future!
-    """
-    try:
-        base_template = get_template(filepath)
-    except TemplateSyntaxError as tse:
-        return sys.stdout.write('Unable to open template: {}\n'.format(filepath))
-
-    engine = base_template.template.engine
+    has_issues = False
+    # Get the template's contents
     source = get_contents(filepath=filepath,
                           encoding=engine.file_charset)
-
+    # Create and process the template
     template = Template(template_string=source, engine=engine, name=filepath)
+    # Prepare output
     duplicate_table, duplicate_headers = template.list_duplicates()
     unutilized_table, unutilized_headers = template.list_unutilized_items()
     add_newline = False
+
     if duplicate_table or unutilized_table:
         sys.stdout.write(template.name + '\n')
         add_newline = True
+        has_issues = True
+    # Display the table that contains duplicate loads
     if duplicate_table:
         sys.stdout.write(tabulate(duplicate_table, duplicate_headers,
                                   tablefmt='psql') + '\n')
+    # Display the table that contains unutilized loads
     if unutilized_table:
         sys.stdout.write(tabulate(unutilized_table, unutilized_headers,
                                   tablefmt='psql') + '\n')
 
     if add_newline:
         sys.stdout.write('\n')
+
+    return has_issues
