@@ -5,11 +5,14 @@ python:
   - "3.5"
 
 env:
-  - REQUIREMENTS=demo/requirements/requirements-1.8.txt
+  - DJANGO_VERSION=1.8.14
 
 install:
-  - pip install .
-  - pip install -r $REQUIREMENTS
+  - pip install -q Django==$DJANGO_VERSION
+  - pip install tabulate
+  - pip install coveralls
+  - pip install tox
+  - python setup.py -q install
 
 script:
   - tox
