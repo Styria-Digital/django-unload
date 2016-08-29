@@ -1,0 +1,19 @@
+language: python
+
+python:
+  - "2.7"
+  - "3.5"
+
+env:
+  - REQUIREMENTS=demo/requirements/requirements-1.8.txt
+
+install:
+  - pip install .
+  - pip install -r $REQUIREMENTS
+
+script:
+  - tox
+
+script:
+  - cd demo
+  - ./manage.py test --verbosity=2 unload
