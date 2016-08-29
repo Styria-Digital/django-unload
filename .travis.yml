@@ -4,6 +4,13 @@ python:
   - "2.7"
   - "3.5"
 
+addons:
+  apt:
+    sources:
+      - deadsnakes
+    packages:
+      - python3.5
+
 env:
   - DJANGO_VERSION=1.8.14
 
