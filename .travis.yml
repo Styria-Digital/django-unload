@@ -11,6 +11,9 @@ addons:
     packages:
       - python3.5
 
+notifications:
+  email: false
+
 env:
   - DJANGO_VERSION=1.8.14
 
