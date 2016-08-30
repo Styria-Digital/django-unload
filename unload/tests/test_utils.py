@@ -2,10 +2,54 @@
 
 from __future__ import unicode_literals
 
+import sys
+
+from django import VERSION as DJANGO_VERSION
+from django.apps.config import AppConfig
+from django.conf import settings
 from django.test import TestCase
+
+from ..utils import get_app, get_contents, get_package_locations
+
+PYTHON_VERSION = sys.version_info
 
 
 class TestUtils(TestCase):
 
-    def test_example(self):
-        self.assertEqual(1 + 1, 2)
+    def test_get_app(self):
+        """
+        Tests the get_app function.
+        """
+        # Try to fetch a non-existing app
+        with self.assertRaises(LookupError):
+            get_app('dummy_app')
+        # Fetch the demo app and evaluate it
+        app = get_app('app')
+        self.assertEqual(app.label, 'app')
+        self.assertIsInstance(app, AppConfig)
+
+    def test_get_contents(self):
+        """
+        Test the get_contents function on the master.html template. Avoid
+        using the DjangoTemplates class due to frequent changes between
+        versions.
+        """
+        templates_dir = settings.TEMPLATES[0]['DIRS'][0]
+        master_html = templates_dir + '/master.html'
+        contents = get_contents(filepath=master_html)
+        self.assertIn('DOCTYPE', contents)
+        self.assertIn('html', contents)
+        self.assertIn('head', contents)
+        self.assertIn('title', contents)
+        self.assertIn('body', contents)
+        self.assertIn('{% block title %}', contents)
+        self.assertIn('{% block body %}', contents)
+
+    def test_get_package_locations(self):
+        end_of_path = ('.tox/py{0}{1}-django{2}{3}/lib/'
+                       'python{0}.{1}/site-packages').format(
+                        PYTHON_VERSION.major, PYTHON_VERSION.minor,
+                        DJANGO_VERSION[0], DJANGO_VERSION[1])
+        pkg_locations = get_package_locations()
+        for location in pkg_locations:
+            self.assertTrue(location.endswith(end_of_path))
