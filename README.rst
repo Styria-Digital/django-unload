@@ -1,6 +1,9 @@
 README
 ======
 
+.. image:: https://travis-ci.org/Styria-Digital/django-unload.svg?branch=master
+    :target: https://travis-ci.org/Styria-Digital/django-unload
+
 **Work in progress!**
 
 Requirements
