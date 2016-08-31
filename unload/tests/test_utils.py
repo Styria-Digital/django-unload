@@ -10,7 +10,7 @@ from django.conf import settings
 from django.test import TestCase
 
 from ..utils import (get_app, get_contents, get_package_locations,
-                     output_template_name, output_as_table)
+                     get_template_files, output_template_name, output_as_table)
 
 PYTHON_VERSION = sys.version_info
 
@@ -63,6 +63,15 @@ class TestUtils(TestCase):
         pkg_locations = get_package_locations()
         for location in pkg_locations:
             self.assertTrue(location.endswith(end_of_path))
+
+    def test_get_template_files(self):
+        """
+        Test the location of the master.html template file.
+        """
+        templates_dir = settings.TEMPLATES[0]['DIRS'][0]
+        master_html = templates_dir + '/master.html'
+        template_files = get_template_files(templates_dir)
+        self.assertIn(master_html, template_files)
 
     def test_start_output(self):
         """
