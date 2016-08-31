@@ -11,6 +11,7 @@ from django.template.base import (
 
 from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, BUILT_IN_TAG_VALUES,
                        BUILT_IN_FILTERS)
+from .utils import get_filters
 
 if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
     from django.template.base import get_library
@@ -280,27 +281,6 @@ class Template(BaseTemplate):
 
         :returns: a list of custom filter names
         """
-
-        def get_filters(content):
-            """
-            Get filter names from the token's content.
-
-            WARNING: Multiple filters can be used simultaneously, e.g.:
-                {{ some_list|safeseq|join:", " }}
-
-            :content: String; the token's content
-            :returns: a list of filter names
-            """
-            filters = []
-            split_content = content.split('|')
-
-            for item in split_content[1:]:
-                if ':' in item:
-                    item = item[:item.index(':')]
-                filters.append(item)
-
-            return filters
-
         used_filters = []
 
         for token in self.tokens:

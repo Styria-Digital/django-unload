@@ -43,6 +43,27 @@ def get_contents(filepath, encoding='UTF-8'):
         return fp.read()
 
 
+def get_filters(content):
+    """
+    Get filter names from the token's content.
+
+    WARNING: Multiple filters can be used simultaneously, e.g.:
+        {{ some_list|safeseq|join:", " }}
+
+    :content: String; the token's content
+    :returns: a list of filter names
+    """
+    filters = []
+    split_content = content.split('|')
+
+    for item in split_content[1:]:
+        if ':' in item:
+            item = item[:item.index(':')]
+        filters.append(item)
+
+    return filters
+
+
 def get_package_locations():
     """
     Get the paths of directories where 3rd packages are installed.

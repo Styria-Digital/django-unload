@@ -9,7 +9,7 @@ from django.apps.config import AppConfig
 from django.conf import settings
 from django.test import TestCase
 
-from ..utils import (get_app, get_contents, get_package_locations,
+from ..utils import (get_app, get_contents, get_filters, get_package_locations,
                      get_template_files, output_template_name, output_as_table)
 
 PYTHON_VERSION = sys.version_info
@@ -50,6 +50,13 @@ class TestUtils(TestCase):
         self.assertIn('body', contents)
         self.assertIn('{% block title %}', contents)
         self.assertIn('{% block body %}', contents)
+
+    def test_get_filters(self):
+        token_content = '{{ somevariable|cut:"0" }}'
+        filters = get_filters(token_content)
+        self.assertIn('cut', filters)
+        self.assertNotIn('somevariable', filters)
+        self.assertNotIn('0', filters)
 
     def test_get_package_locations(self):
         """
