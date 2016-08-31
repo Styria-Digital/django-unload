@@ -4,9 +4,11 @@ from __future__ import unicode_literals
 
 import io
 import os
+import sys
 from mimetypes import guess_type
 
 from pip import get_installed_distributions
+from tabulate import tabulate
 
 from django.apps import apps
 
@@ -73,3 +75,23 @@ def get_template_files(template_dir):
                 templates.append(os.path.join(dirpath, filename))
 
     return templates
+
+
+def output_template_name(template_name, output=sys.stdout):
+    """
+    Output the template's name.
+
+    :template_name: String
+    """
+    output.write(template_name + '\n')
+
+
+def output_as_table(table, headers, output=sys.stdout, tablefmt='psql'):
+    """
+    Outputs the results in the desired format
+
+    :table: a list of lists
+    :headers: a list of strings
+    :tablefmt: String (specific to the tabulate library)
+    """
+    output.write(tabulate(table, headers, tablefmt=tablefmt) + '\n')

@@ -9,9 +9,15 @@ from django.apps.config import AppConfig
 from django.conf import settings
 from django.test import TestCase
 
-from ..utils import get_app, get_contents, get_package_locations
+from ..utils import (get_app, get_contents, get_package_locations,
+                     get_template_files, output_template_name, output_as_table)
 
 PYTHON_VERSION = sys.version_info
+
+if PYTHON_VERSION.major == 2:
+    from StringIO import StringIO
+elif PYTHON_VERSION.major == 3:
+    from io import StringIO
 
 
 class TestUtils(TestCase):
@@ -46,10 +52,48 @@ class TestUtils(TestCase):
         self.assertIn('{% block body %}', contents)
 
     def test_get_package_locations(self):
+        """
+        Get the directory path containing the installed 3rd party packages (in
+        this instance the site-packages directory located in .tox/).
+        """
         end_of_path = ('.tox/py{0}{1}-django{2}{3}/lib/'
                        'python{0}.{1}/site-packages').format(
-                        PYTHON_VERSION.major, PYTHON_VERSION.minor,
-                        DJANGO_VERSION[0], DJANGO_VERSION[1])
+            PYTHON_VERSION.major, PYTHON_VERSION.minor,
+            DJANGO_VERSION[0], DJANGO_VERSION[1])
         pkg_locations = get_package_locations()
         for location in pkg_locations:
             self.assertTrue(location.endswith(end_of_path))
+
+    def test_get_template_files(self):
+        """
+        Test the location of the master.html template file.
+        """
+        templates_dir = settings.TEMPLATES[0]['DIRS'][0]
+        master_html = templates_dir + '/master.html'
+        template_files = get_template_files(templates_dir)
+        self.assertIn(master_html, template_files)
+
+    def test_start_output(self):
+        """
+        Test output to console.
+        """
+        output = StringIO()
+        template_name = 'example.html'
+        output_template_name(template_name=template_name, output=output)
+        self.assertIn(template_name + '\n', output.getvalue())
+
+    def test_output_as_table(self):
+        """
+        Test the output of results.
+
+        The examples were taken from: https://pypi.python.org/pypi/tabulate
+        """
+        output = StringIO()
+        table = [["spam", 42], ["eggs", 451], ["bacon", 0]]
+        headers = ["item", "qty"]
+        output_as_table(table=table, headers=headers, output=output)
+        for header in headers:
+            self.assertIn(header, output.getvalue())
+        for row in table:
+            for value in row:
+                self.assertIn(str(value), output.getvalue())

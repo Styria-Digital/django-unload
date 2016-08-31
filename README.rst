@@ -9,7 +9,7 @@ README
 Requirements
 ------------
 
-* Python 2.7+, 3.3+
+* Python 2.7+, 3.4+
 * Django 1.8 (1.9 support will be added later)
 
 

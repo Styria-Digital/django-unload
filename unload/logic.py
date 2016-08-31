@@ -4,13 +4,12 @@ from __future__ import unicode_literals
 
 import sys
 
-from tabulate import tabulate
-
 from django.template.backends.django import DjangoTemplates
 from django.conf import settings
 
 from .base import Template
-from .utils import get_contents, get_package_locations, get_template_files
+from .utils import (get_contents, get_package_locations,
+                    get_template_files, output_as_table, output_template_name)
 
 
 def list_unnecessary_loads(app=None):
@@ -75,6 +74,7 @@ def process_template(filepath, engine):
     :returns: Boolean (does the template file have issues or not)
     """
     has_issues = False
+    add_newline = False
     # Get the template's contents
     source = get_contents(filepath=filepath,
                           encoding=engine.file_charset)
@@ -83,20 +83,19 @@ def process_template(filepath, engine):
     # Prepare output
     duplicate_table, duplicate_headers = template.list_duplicates()
     unutilized_table, unutilized_headers = template.list_unutilized_items()
-    add_newline = False
 
     if duplicate_table or unutilized_table:
-        sys.stdout.write(template.name + '\n')
+        output_template_name(template_name=template.name, output=sys.stdout)
         add_newline = True
         has_issues = True
     # Display the table that contains duplicate loads
     if duplicate_table:
-        sys.stdout.write(tabulate(duplicate_table, duplicate_headers,
-                                  tablefmt='psql') + '\n')
+        output_as_table(table=duplicate_table,
+                        headers=duplicate_headers, output=sys.stdout)
     # Display the table that contains unutilized loads
     if unutilized_table:
-        sys.stdout.write(tabulate(unutilized_table, unutilized_headers,
-                                  tablefmt='psql') + '\n')
+        output_as_table(table=unutilized_table,
+                        headers=unutilized_headers, output=sys.stdout)
 
     if add_newline:
         sys.stdout.write('\n')
