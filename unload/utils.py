@@ -116,3 +116,22 @@ def output_as_table(table, headers, output=sys.stdout, tablefmt='psql'):
     :tablefmt: String (specific to the tabulate library)
     """
     output.write(tabulate(table, headers, tablefmt=tablefmt) + '\n')
+
+
+def update_dictionary(dictionary, key, value):
+    """
+    Add the key-value pair to the dictionary and return the dictionary.
+
+    :dictionary: dict object
+    :key: String (e.g. module name)
+    :value: Integer (e.g. line number)
+    :returns: dict object
+    """
+    if key not in dictionary:
+        dictionary[key] = [value]
+    else:
+        # The same key can appear on multiple lines
+        if value not in dictionary[key]:
+            dictionary[key].append(value)
+
+    return dictionary

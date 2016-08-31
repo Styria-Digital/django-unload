@@ -10,7 +10,8 @@ from django.conf import settings
 from django.test import TestCase
 
 from ..utils import (get_app, get_contents, get_filters, get_package_locations,
-                     get_template_files, output_template_name, output_as_table)
+                     get_template_files, output_template_name, output_as_table,
+                     update_dictionary)
 
 PYTHON_VERSION = sys.version_info
 
@@ -104,3 +105,24 @@ class TestUtils(TestCase):
         for row in table:
             for value in row:
                 self.assertIn(str(value), output.getvalue())
+
+    def test_update_dictionary(self):
+        dictionary = {}
+        # Add new data
+        dictionary = update_dictionary(dictionary=dictionary,
+                                       key='module', value=1)
+        self.assertIn('module', dictionary.keys())
+        self.assertEqual(1, len(dictionary.keys()))
+        self.assertEqual([1], dictionary.get('module'))
+        # Repeat
+        dictionary = update_dictionary(dictionary=dictionary,
+                                       key='module', value=1)
+        self.assertIn('module', dictionary.keys())
+        self.assertEqual(1, len(dictionary.keys()))
+        self.assertEqual([1], dictionary.get('module'))
+        # Add new line number
+        dictionary = update_dictionary(dictionary=dictionary,
+                                       key='module', value=2)
+        self.assertIn('module', dictionary.keys())
+        self.assertEqual(1, len(dictionary.keys()))
+        self.assertEqual([1, 2], dictionary.get('module'))

@@ -11,7 +11,7 @@ from django.template.base import (
 
 from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, BUILT_IN_TAG_VALUES,
                        BUILT_IN_FILTERS)
-from .utils import get_filters
+from .utils import get_filters, update_dictionary
 
 if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
     from django.template.base import get_library
@@ -194,43 +194,6 @@ class Template(BaseTemplate):
         :returns: {'module': [line_numbers]}, {'member': [line_numbers]}
         """
 
-        def add_module(modules, module, line_number):
-            """
-            Add the module's name and its line number to the modules dictionary
-
-            :modules: the modules dictionary
-            :module: the module's name
-            :line_number: the line number at which the module is loaded
-            :returns: a modified modules dictionary
-            """
-            if module not in modules:
-                modules[module] = [line_number]
-            else:
-                # The same module can be loaded multiple times
-                if line_number not in modules[module]:
-                    modules[module].append(line_number)
-
-            return modules
-
-        def add_member(members, member, line_number):
-            """
-            Add the member's (tag/filter) name and its line number to the
-            members dictionary.
-
-            :members: the members dictionary
-            :member: the member's name
-            :line_number: the line number at which the member is loaded
-            :returns: a modified members dictionary
-            """
-            if member not in members:
-                members[member] = [line_number]
-            else:
-                # The same member can be loaded multiple times
-                if line_number not in members[member]:
-                    members[member].append(line_number)
-
-            return members
-
         modules = {}
         members = {}
 
@@ -242,17 +205,17 @@ class Template(BaseTemplate):
                 if token_content >= 4 and token_content[-2] == 'from':
                     # Add loaded module
                     module = token_content[-1]
-                    modules = add_module(modules, module, token.lineno)
+                    modules = update_dictionary(modules, module, token.lineno)
                     # Add loaded members
                     loaded_members = token_content[1:-2]
                     for member in loaded_members:
-                        members = add_member(members, member, token.lineno)
+                        members = update_dictionary(members, member, token.lineno)
                 # Regular syntax
                 else:
                     # Multiple modules can be imported in the same load block
                     templatetags_modules = token_content[1:]
                     for module in templatetags_modules:
-                        modules = add_module(modules, module, token.lineno)
+                        modules = update_dictionary(modules, module, token.lineno)
 
         return modules, members
 
