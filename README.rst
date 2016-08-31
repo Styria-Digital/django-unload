@@ -3,6 +3,10 @@ README
 
 .. image:: https://travis-ci.org/Styria-Digital/django-unload.svg?branch=master
     :target: https://travis-ci.org/Styria-Digital/django-unload
+    
+.. image:: https://coveralls.io/repos/github/Styria-Digital/django-unload/badge.svg?branch=master
+    :target: https://coveralls.io/github/Styria-Digital/django-unload?branch=master
+
 
 **Work in progress!**
 
