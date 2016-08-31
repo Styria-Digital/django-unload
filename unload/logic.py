@@ -9,7 +9,7 @@ from django.conf import settings
 
 from .base import Template
 from .utils import (get_contents, get_package_locations,
-                    get_template_files, output_as_table, start_output)
+                    get_template_files, output_as_table, output_template_name)
 
 
 def list_unnecessary_loads(app=None):
@@ -85,7 +85,7 @@ def process_template(filepath, engine):
     unutilized_table, unutilized_headers = template.list_unutilized_items()
 
     if duplicate_table or unutilized_table:
-        start_output(template_name=template.name, output=sys.stdout)
+        output_template_name(template_name=template.name, output=sys.stdout)
         add_newline = True
         has_issues = True
     # Display the table that contains duplicate loads

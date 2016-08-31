@@ -77,16 +77,16 @@ def get_template_files(template_dir):
     return templates
 
 
-def start_output(template_name, output):
+def output_template_name(template_name, output=sys.stdout):
     """
     Output the template's name.
 
-    :template: Template object
+    :template_name: String
     """
     output.write(template_name + '\n')
 
 
-def output_as_table(table, headers, output, tablefmt='psql'):
+def output_as_table(table, headers, output=sys.stdout, tablefmt='psql'):
     """
     Outputs the results in the desired format
 
