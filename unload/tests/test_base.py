@@ -467,7 +467,10 @@ class TestBase(TestCase):
         from_syntax_without_tags = Template(
             template_string=get_contents(self.from_syntax_without_tags),
             name=self.from_syntax_without_tags)
-        self.assertEqual(from_syntax_without_tags.list_unutilized_items(),
-                         ([('app_tags', 'example_simple_tag'), (None, 'plus')],
-                          ['Unutilized module', 'Unutilized tag/filter']))
-
+        table, header = from_syntax_without_tags.list_unutilized_items()
+        # Merge the two rows due to unpredictable ordering of members
+        all_rows = table[0] + table[1]
+        self.assertEqual(header, ['Unutilized module', 'Unutilized tag/filter'])
+        self.assertIn('app_tags', all_rows)
+        self.assertIn('example_simple_tag', all_rows)
+        self.assertIn('plus', all_rows)
