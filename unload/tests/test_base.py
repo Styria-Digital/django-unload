@@ -32,6 +32,8 @@ class TestBase(TestCase):
         cls.double_loads = os.path.join(app_templates, 'double_loads.html')
         cls.with_tags = os.path.join(app_templates, 'with_tags.html')
         cls.without_tags = os.path.join(app_templates, 'without_tags.html')
+        cls.from_syntax_with_tags = os.path.join(app_templates, 'from_syntax_with_tags.html')
+        cls.from_syntax_without_tags = os.path.join(app_templates, 'from_syntax_without_tags.html')
 
     def test_get_tokens_master_template(self):
         master_template = Template(
@@ -126,6 +128,45 @@ class TestBase(TestCase):
         self.assertTrue(example_simple_tag_token)
         self.assertTrue(example_assignment_tag_token)
 
+    def test_get_tokens_from_syntax_with_tags(self):
+        from_syntax_with_tags = Template(
+            template_string=get_contents(self.from_syntax_with_tags),
+            name=self.from_syntax_with_tags)
+
+        extends_token = False
+        load_token = 0
+        block_token = False
+        endblock_token = False
+        example_inclusion_tag_token = False
+        example_simple_tag_token = False
+        example_assignment_tag_token = False
+
+        for token in from_syntax_with_tags.tokens:
+            if token.token_type == 2:
+                contents = token.split_contents()
+                if contents[0] == 'extends':
+                    extends_token = True
+                elif contents[0] == 'load' and contents[-2] == 'from':
+                    load_token += 1
+                elif contents[0] == 'block':
+                    block_token = True
+                elif contents[0] == 'endblock':
+                    endblock_token = True
+                elif contents[0] == 'example_inclusion_tag':
+                    example_inclusion_tag_token = True
+                elif contents[0] == 'example_simple_tag':
+                    example_simple_tag_token = True
+                elif contents[0] == 'example_assignment_tag':
+                    example_assignment_tag_token = True
+
+        self.assertTrue(extends_token)
+        self.assertEqual(1, load_token)
+        self.assertTrue(block_token)
+        self.assertTrue(endblock_token)
+        self.assertTrue(example_inclusion_tag_token)
+        self.assertTrue(example_simple_tag_token)
+        self.assertTrue(example_assignment_tag_token)
+
     def test_get_tokens_without_tags(self):
         # Test double loads
         without_tags = Template(
@@ -143,6 +184,34 @@ class TestBase(TestCase):
                 if contents[0] == 'extends':
                     extends_token = True
                 elif contents[0] == 'load':
+                    load_token += 1
+                elif contents[0] == 'block':
+                    block_token = True
+                elif contents[0] == 'endblock':
+                    endblock_token = True
+
+        self.assertTrue(extends_token)
+        self.assertEqual(1, load_token)
+        self.assertTrue(block_token)
+        self.assertTrue(endblock_token)
+
+    def test_get_tokens_from_syntax_without_tags(self):
+        # Test double loads
+        from_syntax_without_tags = Template(
+            template_string=get_contents(self.from_syntax_without_tags),
+            name=self.from_syntax_without_tags)
+
+        extends_token = False
+        load_token = 0
+        block_token = False
+        endblock_token = False
+
+        for token in from_syntax_without_tags.tokens:
+            if token.token_type == 2:
+                contents = token.split_contents()
+                if contents[0] == 'extends':
+                    extends_token = True
+                elif contents[0] == 'load' and contents[-2] == 'from':
                     load_token += 1
                 elif contents[0] == 'block':
                     block_token = True
