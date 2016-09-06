@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 
+import os
 import sys
 
 from django import VERSION as DJANGO_VERSION
@@ -9,8 +10,9 @@ from django.apps.config import AppConfig
 from django.conf import settings
 from django.test import TestCase
 
-from ..utils import (get_app, get_contents, get_package_locations,
-                     get_template_files, output_template_name, output_as_table)
+from ..utils import (get_app, get_contents, get_filters, get_package_locations,
+                     get_template_files, output_template_name, output_as_table,
+                     update_dictionary)
 
 PYTHON_VERSION = sys.version_info
 
@@ -51,6 +53,13 @@ class TestUtils(TestCase):
         self.assertIn('{% block title %}', contents)
         self.assertIn('{% block body %}', contents)
 
+    def test_get_filters(self):
+        token_content = '{{ somevariable|cut:"0" }}'
+        filters = get_filters(token_content)
+        self.assertIn('cut', filters)
+        self.assertNotIn('somevariable', filters)
+        self.assertNotIn('0', filters)
+
     def test_get_package_locations(self):
         """
         Get the directory path containing the installed 3rd party packages (in
@@ -69,7 +78,7 @@ class TestUtils(TestCase):
         Test the location of the master.html template file.
         """
         templates_dir = settings.TEMPLATES[0]['DIRS'][0]
-        master_html = templates_dir + '/master.html'
+        master_html = os.path.join(templates_dir, 'master.html')
         template_files = get_template_files(templates_dir)
         self.assertIn(master_html, template_files)
 
@@ -97,3 +106,24 @@ class TestUtils(TestCase):
         for row in table:
             for value in row:
                 self.assertIn(str(value), output.getvalue())
+
+    def test_update_dictionary(self):
+        dictionary = {}
+        # Add new data
+        dictionary = update_dictionary(dictionary=dictionary,
+                                       key='module', value=1)
+        self.assertIn('module', dictionary.keys())
+        self.assertEqual(1, len(dictionary.keys()))
+        self.assertEqual([1], dictionary.get('module'))
+        # Repeat
+        dictionary = update_dictionary(dictionary=dictionary,
+                                       key='module', value=1)
+        self.assertIn('module', dictionary.keys())
+        self.assertEqual(1, len(dictionary.keys()))
+        self.assertEqual([1], dictionary.get('module'))
+        # Add new line number
+        dictionary = update_dictionary(dictionary=dictionary,
+                                       key='module', value=2)
+        self.assertIn('module', dictionary.keys())
+        self.assertEqual(1, len(dictionary.keys()))
+        self.assertEqual([1, 2], dictionary.get('module'))

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import sys
 from distutils.version import StrictVersion
 
 from django import get_version
@@ -16,6 +17,7 @@ if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
     from django.templatetags.static import register as static_lib
     from django.templatetags.tz import register as tz_lib
 
+PYTHON_VERSION = sys.version_info
 
 BUILT_IN_FILTERS = filter_lib.filters.keys()
 CACHE_FILTERS = cache_lib.filters.keys()
@@ -87,6 +89,15 @@ STATIC_TAGS = {
     'get_static_prefix': None
 }
 
-BUILT_IN_TAG_VALUES = set(BUILT_IN_TAGS.values() + I18N_TAGS.values() +
-                          L10N_TAGS.values() + CACHE_TAGS.values() +
-                          STATIC_TAGS.values())
+if PYTHON_VERSION.major == 2:
+    BUILT_IN_TAG_VALUES = set(BUILT_IN_TAGS.values() +
+                              I18N_TAGS.values() +
+                              L10N_TAGS.values() +
+                              CACHE_TAGS.values() +
+                              STATIC_TAGS.values())
+elif PYTHON_VERSION.major == 3:
+    BUILT_IN_TAG_VALUES = set(list(BUILT_IN_TAGS.values()) +
+                              list(I18N_TAGS.values()) +
+                              list(L10N_TAGS.values()) +
+                              list(CACHE_TAGS.values()) +
+                              list(STATIC_TAGS.values()))

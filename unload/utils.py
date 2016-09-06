@@ -43,6 +43,27 @@ def get_contents(filepath, encoding='UTF-8'):
         return fp.read()
 
 
+def get_filters(content):
+    """
+    Get filter names from the token's content.
+
+    WARNING: Multiple filters can be used simultaneously, e.g.:
+        {{ some_list|safeseq|join:", " }}
+
+    :content: String; the token's content
+    :returns: a list of filter names
+    """
+    filters = []
+    split_content = content.split('|')
+
+    for item in split_content[1:]:
+        if ':' in item:
+            item = item[:item.index(':')]
+        filters.append(item)
+
+    return filters
+
+
 def get_package_locations():
     """
     Get the paths of directories where 3rd packages are installed.
@@ -95,3 +116,22 @@ def output_as_table(table, headers, output=sys.stdout, tablefmt='psql'):
     :tablefmt: String (specific to the tabulate library)
     """
     output.write(tabulate(table, headers, tablefmt=tablefmt) + '\n')
+
+
+def update_dictionary(dictionary, key, value):
+    """
+    Add the key-value pair to the dictionary and return the dictionary.
+
+    :dictionary: dict object
+    :key: String (e.g. module name)
+    :value: Integer (e.g. line number)
+    :returns: dict object
+    """
+    if key not in dictionary:
+        dictionary[key] = [value]
+    else:
+        # The same key can appear on multiple lines
+        if value not in dictionary[key]:
+            dictionary[key].append(value)
+
+    return dictionary
