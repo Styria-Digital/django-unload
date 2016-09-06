@@ -372,3 +372,54 @@ class TestBase(TestCase):
         self.assertFalse(
             from_syntax_without_tags.utilized_members['example_simple_tag'])
         self.assertFalse(from_syntax_without_tags.utilized_members['plus'])
+
+    def test_list_duplicates(self):
+        master_template = Template(
+            template_string=get_contents(self.master_template),
+            name=self.master_template)
+        self.assertEqual(master_template.list_duplicates(),
+                         ([], ['Duplicate module', 'Duplicate tag/filter',
+                               'Line number']))
+
+        tag_template = Template(
+            template_string=get_contents(self.tag_template),
+            name=self.tag_template)
+        self.assertEqual(tag_template.list_duplicates(),
+                         ([], ['Duplicate module', 'Duplicate tag/filter',
+                               'Line number']))
+
+        double_loads = Template(
+            template_string=get_contents(self.double_loads),
+            name=self.double_loads)
+        self.assertEqual(double_loads.list_duplicates(),
+                         ([['app_tags', None, '2, 3']],
+                          ['Duplicate module', 'Duplicate tag/filter',
+                           'Line number']))
+
+        with_tags = Template(
+            template_string=get_contents(self.with_tags),
+            name=self.with_tags)
+        self.assertEqual(with_tags.list_duplicates(),
+                         ([], ['Duplicate module', 'Duplicate tag/filter',
+                               'Line number']))
+
+        from_syntax_with_tags = Template(
+            template_string=get_contents(self.from_syntax_with_tags),
+            name=self.from_syntax_with_tags)
+        self.assertEqual(from_syntax_with_tags.list_duplicates(),
+                         ([], ['Duplicate module', 'Duplicate tag/filter',
+                               'Line number']))
+
+        without_tags = Template(
+            template_string=get_contents(self.without_tags),
+            name=self.without_tags)
+        self.assertEqual(without_tags.list_duplicates(),
+                         ([], ['Duplicate module', 'Duplicate tag/filter',
+                               'Line number']))
+
+        from_syntax_without_tags = Template(
+            template_string=get_contents(self.from_syntax_without_tags),
+            name=self.from_syntax_without_tags)
+        self.assertEqual(from_syntax_without_tags.list_duplicates(),
+                         ([], ['Duplicate module', 'Duplicate tag/filter',
+                               'Line number']))
