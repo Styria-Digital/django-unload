@@ -184,12 +184,10 @@ class TestBase(TestCase):
         self.assertEqual(from_syntax_with_tags.loaded_modules,
                          {'app_tags': [2]})
         self.assertEqual(from_syntax_with_tags.loaded_members,
-                         {
-                            'example_assignment_tag': [2],
-                            'example_inclusion_tag': [2],
-                            'example_simple_tag': [2],
-                            'plus': [2]
-                         })
+                         {'example_assignment_tag': [2],
+                          'example_inclusion_tag': [2],
+                          'example_simple_tag': [2],
+                          'plus': [2]})
 
         without_tags = Template(
             template_string=get_contents(self.without_tags),
@@ -204,10 +202,8 @@ class TestBase(TestCase):
         self.assertEqual(from_syntax_without_tags.loaded_modules,
                          {'app_tags': [2]})
         self.assertEqual(from_syntax_without_tags.loaded_members,
-                         {
-                            'example_simple_tag': [2],
-                            'plus': [2]
-                         })
+                         {'example_simple_tag': [2],
+                          'plus': [2]})
 
     def test_get_used_tags_and_filters(self):
 
@@ -256,3 +252,70 @@ class TestBase(TestCase):
             name=self.from_syntax_without_tags)
         self.assertEqual(from_syntax_without_tags.used_tags, [])
         self.assertEqual(from_syntax_without_tags.used_filters, [])
+
+    def test_get_templatetags_members(self):
+
+        master_template = Template(
+            template_string=get_contents(self.master_template),
+            name=self.master_template)
+        self.assertEqual(master_template.tags, {})
+        self.assertEqual(master_template.filters, {})
+
+        tag_template = Template(
+            template_string=get_contents(self.tag_template),
+            name=self.tag_template)
+        self.assertEqual(tag_template.tags, {})
+        self.assertEqual(tag_template.filters, {})
+
+        double_loads = Template(
+            template_string=get_contents(self.double_loads),
+            name=self.double_loads)
+
+        self.assertIn('app_tags', double_loads.tags.keys())
+        self.assertIn('example_inclusion_tag', double_loads.tags['app_tags'])
+        self.assertIn('example_simple_tag', double_loads.tags['app_tags'])
+        self.assertIn('example_assignment_tag', double_loads.tags['app_tags'])
+        self.assertIn('app_tags', double_loads.filters.keys())
+        self.assertIn('plus', double_loads.filters['app_tags'])
+
+        with_tags = Template(
+            template_string=get_contents(self.with_tags),
+            name=self.with_tags)
+        self.assertIn('app_tags', with_tags.tags.keys())
+        self.assertIn('example_inclusion_tag', with_tags.tags['app_tags'])
+        self.assertIn('example_simple_tag', with_tags.tags['app_tags'])
+        self.assertIn('example_assignment_tag', with_tags.tags['app_tags'])
+        self.assertIn('app_tags', with_tags.filters.keys())
+        self.assertIn('plus', with_tags.filters['app_tags'])
+
+        from_syntax_with_tags = Template(
+            template_string=get_contents(self.from_syntax_with_tags),
+            name=self.from_syntax_with_tags)
+        self.assertIn('app_tags', from_syntax_with_tags.tags.keys())
+        self.assertIn('example_inclusion_tag',
+                      from_syntax_with_tags.tags['app_tags'])
+        self.assertIn('example_simple_tag',
+                      from_syntax_with_tags.tags['app_tags'])
+        self.assertIn('example_assignment_tag',
+                      from_syntax_with_tags.tags['app_tags'])
+        self.assertIn('app_tags', from_syntax_with_tags.filters.keys())
+        self.assertIn('plus', from_syntax_with_tags.filters['app_tags'])
+
+        without_tags = Template(
+            template_string=get_contents(self.without_tags),
+            name=self.without_tags)
+        self.assertIn('app_tags', without_tags.tags.keys())
+        self.assertIn('example_inclusion_tag', without_tags.tags['app_tags'])
+        self.assertIn('example_simple_tag', without_tags.tags['app_tags'])
+        self.assertIn('example_assignment_tag', without_tags.tags['app_tags'])
+        self.assertIn('app_tags', without_tags.filters.keys())
+        self.assertIn('plus', without_tags.filters['app_tags'])
+
+        from_syntax_without_tags = Template(
+            template_string=get_contents(self.from_syntax_without_tags),
+            name=self.from_syntax_without_tags)
+        self.assertIn('app_tags', from_syntax_without_tags.tags.keys())
+        self.assertIn('example_simple_tag',
+                      from_syntax_without_tags.tags['app_tags'])
+        self.assertIn('app_tags', from_syntax_without_tags.filters.keys())
+        self.assertIn('plus', from_syntax_without_tags.filters['app_tags'])
