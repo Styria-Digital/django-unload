@@ -32,8 +32,10 @@ class TestBase(TestCase):
         cls.double_loads = os.path.join(app_templates, 'double_loads.html')
         cls.with_tags = os.path.join(app_templates, 'with_tags.html')
         cls.without_tags = os.path.join(app_templates, 'without_tags.html')
-        cls.from_syntax_with_tags = os.path.join(app_templates, 'from_syntax_with_tags.html')
-        cls.from_syntax_without_tags = os.path.join(app_templates, 'from_syntax_without_tags.html')
+        cls.from_syntax_with_tags = os.path.join(app_templates,
+                                                 'from_syntax_with_tags.html')
+        cls.from_syntax_without_tags = os.path.join(app_templates,
+                                                    'from_syntax_without_tags.html')
 
     def test_get_tokens_master_template(self):
         master_template = Template(
@@ -223,9 +225,63 @@ class TestBase(TestCase):
         self.assertTrue(block_token)
         self.assertTrue(endblock_token)
 
+    def test_parse_load_block(self):
 
+        master_template = Template(
+            template_string=get_contents(self.master_template),
+            name=self.master_template)
+        self.assertEqual(master_template.loaded_modules, {})
+        self.assertEqual(master_template.loaded_members, {})
 
+        tag_template = Template(
+            template_string=get_contents(self.tag_template),
+            name=self.tag_template)
+        self.assertEqual(tag_template.loaded_modules, {})
+        self.assertEqual(tag_template.loaded_members, {})
 
+        double_loads = Template(
+            template_string=get_contents(self.double_loads),
+            name=self.double_loads)
+        self.assertEqual(double_loads.loaded_modules,
+                         {'app_tags': [2, 3]})
+        self.assertEqual(double_loads.loaded_members, {})
 
+        with_tags = Template(
+            template_string=get_contents(self.with_tags),
+            name=self.with_tags)
+        self.assertEqual(with_tags.loaded_modules,
+                         {'app_tags': [2]})
+        self.assertEqual(with_tags.loaded_members, {})
+
+        from_syntax_with_tags = Template(
+            template_string=get_contents(self.from_syntax_with_tags),
+            name=self.from_syntax_with_tags)
+        self.assertEqual(from_syntax_with_tags.loaded_modules,
+                         {'app_tags': [2]})
+        self.assertEqual(from_syntax_with_tags.loaded_members,
+                         {
+                            'example_assignment_tag': [2],
+                            'example_inclusion_tag': [2],
+                            'example_simple_tag': [2],
+                            'plus': [2]
+                         })
+
+        without_tags = Template(
+            template_string=get_contents(self.without_tags),
+            name=self.without_tags)
+        self.assertEqual(without_tags.loaded_modules,
+                         {'app_tags': [2]})
+        self.assertEqual(without_tags.loaded_members, {})
+
+        from_syntax_without_tags = Template(
+            template_string=get_contents(self.from_syntax_without_tags),
+            name=self.from_syntax_without_tags)
+        self.assertEqual(from_syntax_without_tags.loaded_modules,
+                         {'app_tags': [2]})
+        self.assertEqual(from_syntax_without_tags.loaded_members,
+                         {
+                            'example_simple_tag': [2],
+                            'plus': [2]
+                         })
 
 
