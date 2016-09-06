@@ -90,8 +90,10 @@ STATIC_TAGS = {
 }
 
 if PYTHON_VERSION.major == 2:
-    BUILT_IN_TAG_VALUES = set(BUILT_IN_TAGS.values() + I18N_TAGS.values() +
-                              L10N_TAGS.values() + CACHE_TAGS.values() +
+    BUILT_IN_TAG_VALUES = set(BUILT_IN_TAGS.values() +
+                              I18N_TAGS.values() +
+                              L10N_TAGS.values() +
+                              CACHE_TAGS.values() +
                               STATIC_TAGS.values())
 elif PYTHON_VERSION.major == 3:
     BUILT_IN_TAG_VALUES = set(list(BUILT_IN_TAGS.values()) +
