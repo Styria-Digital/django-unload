@@ -423,3 +423,51 @@ class TestBase(TestCase):
         self.assertEqual(from_syntax_without_tags.list_duplicates(),
                          ([], ['Duplicate module', 'Duplicate tag/filter',
                                'Line number']))
+
+    def test_list_unutilized_items(self):
+        master_template = Template(
+            template_string=get_contents(self.master_template),
+            name=self.master_template)
+
+        self.assertEqual(master_template.list_unutilized_items(),
+                         ([], ['Unutilized module', 'Unutilized tag/filter']))
+
+        tag_template = Template(
+            template_string=get_contents(self.tag_template),
+            name=self.tag_template)
+        self.assertEqual(tag_template.list_unutilized_items(),
+                         ([], ['Unutilized module', 'Unutilized tag/filter']))
+
+        double_loads = Template(
+            template_string=get_contents(self.double_loads),
+            name=self.double_loads)
+        self.assertEqual(double_loads.list_unutilized_items(),
+                         ([('app_tags', None)],
+                          ['Unutilized module', 'Unutilized tag/filter']))
+
+        with_tags = Template(
+            template_string=get_contents(self.with_tags),
+            name=self.with_tags)
+        self.assertEqual(with_tags.list_unutilized_items(),
+                         ([], ['Unutilized module', 'Unutilized tag/filter']))
+
+        from_syntax_with_tags = Template(
+            template_string=get_contents(self.from_syntax_with_tags),
+            name=self.from_syntax_with_tags)
+        self.assertEqual(from_syntax_with_tags.list_unutilized_items(),
+                         ([], ['Unutilized module', 'Unutilized tag/filter']))
+
+        without_tags = Template(
+            template_string=get_contents(self.without_tags),
+            name=self.without_tags)
+        self.assertEqual(without_tags.list_unutilized_items(),
+                         ([('app_tags', None)],
+                          ['Unutilized module', 'Unutilized tag/filter']))
+
+        from_syntax_without_tags = Template(
+            template_string=get_contents(self.from_syntax_without_tags),
+            name=self.from_syntax_without_tags)
+        self.assertEqual(from_syntax_without_tags.list_unutilized_items(),
+                         ([('app_tags', 'example_simple_tag'), (None, 'plus')],
+                          ['Unutilized module', 'Unutilized tag/filter']))
+
