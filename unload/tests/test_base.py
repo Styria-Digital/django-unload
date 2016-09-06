@@ -284,4 +284,50 @@ class TestBase(TestCase):
                             'plus': [2]
                          })
 
+    def test_get_used_tags_and_filters(self):
 
+        master_template = Template(
+            template_string=get_contents(self.master_template),
+            name=self.master_template)
+        self.assertEqual(master_template.used_tags, [])
+        self.assertEqual(master_template.used_filters, [])
+
+        tag_template = Template(
+            template_string=get_contents(self.tag_template),
+            name=self.tag_template)
+        self.assertEqual(tag_template.used_tags, [])
+        self.assertEqual(tag_template.used_filters, [])
+
+        double_loads = Template(
+            template_string=get_contents(self.double_loads),
+            name=self.double_loads)
+        self.assertEqual(double_loads.used_tags, [])
+        self.assertEqual(double_loads.used_filters, [])
+
+        with_tags = Template(
+            template_string=get_contents(self.with_tags),
+            name=self.with_tags)
+        self.assertEqual(with_tags.used_tags,
+                         ['example_inclusion_tag', 'example_simple_tag',
+                          'example_assignment_tag'])
+        self.assertEqual(with_tags.used_filters, ['plus'])
+
+        from_syntax_with_tags = Template(
+            template_string=get_contents(self.from_syntax_with_tags),
+            name=self.from_syntax_with_tags)
+        self.assertEqual(from_syntax_with_tags.used_tags,
+                         ['example_inclusion_tag', 'example_simple_tag',
+                          'example_assignment_tag'])
+        self.assertEqual(from_syntax_with_tags.used_filters, ['plus'])
+
+        without_tags = Template(
+            template_string=get_contents(self.without_tags),
+            name=self.without_tags)
+        self.assertEqual(without_tags.used_tags, [])
+        self.assertEqual(without_tags.used_filters, [])
+
+        from_syntax_without_tags = Template(
+            template_string=get_contents(self.from_syntax_without_tags),
+            name=self.from_syntax_without_tags)
+        self.assertEqual(from_syntax_without_tags.used_tags, [])
+        self.assertEqual(from_syntax_without_tags.used_filters, [])
