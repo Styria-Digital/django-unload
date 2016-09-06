@@ -202,7 +202,7 @@ class Template(BaseTemplate):
             # Extract load blocks
             if token.token_type == 2 and token_content[0] == 'load':
                 # FROM syntax is used; individual members are loaded
-                if token_content >= 4 and token_content[-2] == 'from':
+                if len(token_content) >= 4 and token_content[-2] == 'from':
                     # Add loaded module
                     module = token_content[-1]
                     modules = update_dictionary(modules, module, token.lineno)

@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 
+import os
 import sys
 
 from django import VERSION as DJANGO_VERSION
@@ -77,7 +78,7 @@ class TestUtils(TestCase):
         Test the location of the master.html template file.
         """
         templates_dir = settings.TEMPLATES[0]['DIRS'][0]
-        master_html = templates_dir + '/master.html'
+        master_html = os.path.join(templates_dir, 'master.html')
         template_files = get_template_files(templates_dir)
         self.assertIn(master_html, template_files)
 
