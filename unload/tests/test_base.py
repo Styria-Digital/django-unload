@@ -319,3 +319,56 @@ class TestBase(TestCase):
                       from_syntax_without_tags.tags['app_tags'])
         self.assertIn('app_tags', from_syntax_without_tags.filters.keys())
         self.assertIn('plus', from_syntax_without_tags.filters['app_tags'])
+
+    def test_get_utilized_modules_and_members(self):
+        master_template = Template(
+            template_string=get_contents(self.master_template),
+            name=self.master_template)
+        self.assertEqual(master_template.utilized_modules, {})
+        self.assertEqual(master_template.utilized_members, {})
+
+        tag_template = Template(
+            template_string=get_contents(self.tag_template),
+            name=self.tag_template)
+        self.assertEqual(tag_template.utilized_modules, {})
+        self.assertEqual(tag_template.utilized_members, {})
+
+        double_loads = Template(
+            template_string=get_contents(self.double_loads),
+            name=self.double_loads)
+        self.assertFalse(double_loads.utilized_modules['app_tags'])
+        self.assertEqual(double_loads.utilized_members, {})
+
+        with_tags = Template(
+            template_string=get_contents(self.with_tags),
+            name=self.with_tags)
+        self.assertTrue(with_tags.utilized_modules['app_tags'])
+        self.assertEqual(with_tags.utilized_members, {})
+
+        from_syntax_with_tags = Template(
+            template_string=get_contents(self.from_syntax_with_tags),
+            name=self.from_syntax_with_tags)
+        self.assertTrue(from_syntax_with_tags.utilized_modules['app_tags'])
+        self.assertTrue(
+            from_syntax_with_tags.utilized_members['example_simple_tag'])
+        self.assertTrue(
+            from_syntax_with_tags.utilized_members['example_inclusion_tag'])
+        self.assertTrue(
+            from_syntax_with_tags.utilized_members['example_assignment_tag'])
+        self.assertTrue(
+            from_syntax_with_tags.utilized_members['plus'])
+
+        without_tags = Template(
+            template_string=get_contents(self.without_tags),
+            name=self.without_tags)
+        self.assertFalse(without_tags.utilized_modules['app_tags'])
+        self.assertEqual(without_tags.utilized_members, {})
+
+        from_syntax_without_tags = Template(
+            template_string=get_contents(self.from_syntax_without_tags),
+            name=self.from_syntax_without_tags)
+
+        self.assertFalse(from_syntax_without_tags.utilized_modules['app_tags'])
+        self.assertFalse(
+            from_syntax_without_tags.utilized_members['example_simple_tag'])
+        self.assertFalse(from_syntax_without_tags.utilized_members['plus'])
