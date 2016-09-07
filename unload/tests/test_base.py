@@ -36,6 +36,9 @@ class TestBase(TestCase):
                                                  'from_syntax_with_tags.html')
         cls.from_syntax_without_tags = os.path.join(app_templates,
                                                     'from_syntax_without_tags.html')
+        cls.double_member_load = os.path.join(app_templates,
+                                              'double_member_load.html')
+        cls.only_filter = os.path.join(app_templates, 'only_filter.html')
 
     def test_get_tokens_master_template(self):
         master_template = Template(
@@ -92,7 +95,7 @@ class TestBase(TestCase):
         self.assertEqual(with_tags.tokens[10].split_contents(),
                          ['example_assignment_tag', 'as', 'example'])
         self.assertEqual(with_tags.tokens[12].split_contents(),
-                         ['2|plus:5'])
+                         ['example_simple_tag', '2|plus:5'])
         self.assertEqual(with_tags.tokens[14].split_contents(),
                          ['endblock', 'body'])
 
@@ -148,6 +151,38 @@ class TestBase(TestCase):
         self.assertEqual(from_syntax_without_tags.tokens[4].split_contents(),
                          ['block', 'body'])
         self.assertEqual(from_syntax_without_tags.tokens[6].split_contents(),
+                         ['endblock', 'body'])
+
+    def test_get_tokens_double_member_load(self):
+        double_member_load = Template(
+            template_string=get_contents(self.double_member_load),
+            name=self.double_member_load)
+        self.assertEqual(double_member_load.tokens[0].split_contents(),
+                         ['extends', '"master.html"'])
+        self.assertEqual(double_member_load.tokens[2].split_contents(),
+                         ['load', 'example_simple_tag', 'plus', 'from',
+                         'app_tags'])
+        self.assertEqual(double_member_load.tokens[4].split_contents(),
+                         ['load', 'example_simple_tag', 'plus', 'from',
+                         'app_tags'])
+        self.assertEqual(double_member_load.tokens[6].split_contents(),
+                         ['block', 'body'])
+        self.assertEqual(double_member_load.tokens[8].split_contents(),
+                         ['endblock', 'body'])
+
+    def test_get_tokens_only_filter(self):
+        only_filter = Template(
+            template_string=get_contents(self.only_filter),
+            name=self.only_filter)
+        self.assertEqual(only_filter.tokens[0].split_contents(),
+                         ['extends', '"master.html"'])
+        self.assertEqual(only_filter.tokens[2].split_contents(),
+                         ['load', 'plus', 'from', 'app_tags'])
+        self.assertEqual(only_filter.tokens[4].split_contents(),
+                         ['block', 'body'])
+        self.assertEqual(only_filter.tokens[6].split_contents(),
+                         ['2|plus:5'])
+        self.assertEqual(only_filter.tokens[8].split_contents(),
                          ['endblock', 'body'])
 
     def test_parse_load_block(self):
@@ -230,7 +265,7 @@ class TestBase(TestCase):
             name=self.with_tags)
         self.assertEqual(with_tags.used_tags,
                          ['example_inclusion_tag', 'example_simple_tag',
-                          'example_assignment_tag'])
+                          'example_assignment_tag', 'example_simple_tag'])
         self.assertEqual(with_tags.used_filters, ['plus'])
 
         from_syntax_with_tags = Template(

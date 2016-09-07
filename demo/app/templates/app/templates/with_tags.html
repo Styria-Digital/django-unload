@@ -6,5 +6,5 @@
     {% example_inclusion_tag %}
     <p id="simple_tag">Testing: {% example_simple_tag %}</p>
     <p id="assignment_tag">Testing: {% example_assignment_tag as example%}</p>
-    <p id="filter">Testing: {{ 2|plus:5 }}</p>
+    <p id="filter">Testing: {% example_simple_tag 2|plus:5 %}</p>
 {% endblock body %}
