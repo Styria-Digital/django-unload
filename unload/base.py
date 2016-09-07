@@ -18,6 +18,23 @@ if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
 
 
 class Template(BaseTemplate):
+    """
+    An override of Django's Template class.
+
+    After calling the parent class, the template is analyzed for duplicates
+    and unnecessary loads.
+
+    Additional attributes:
+    :tokens: a list of tokens found in the template
+    :loaded_modules: a dictionary of loaded modules
+    :loaded_members: a dictionary of loaded tags/filters
+    :used_tags: a list of custom tags used in the template
+    :used_filters: a list of custom filters used in the template
+    :tags: a dictionary of custom tags loaded into the template
+    :filters: a dictionary of custom filters loaded into the template
+    :utilized_modules: a dictionary of utilization statuses
+    :utilized_members: a dictionary of utilization statuses
+    """
 
     def __init__(self, template_string, origin=None, name=None, engine=None):
         super(Template, self).__init__(template_string, origin, name, engine)
