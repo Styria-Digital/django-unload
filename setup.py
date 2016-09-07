@@ -7,6 +7,7 @@ setup(
     name='django-unload',
     version='0.2',
     url="https://github.com/Styria-Digital/django-unload",
+    author='Styria Digital Services',
     description='Remove unused template tags',
     long_description=open(
             os.path.join(os.path.dirname(__file__), 'README.rst')
