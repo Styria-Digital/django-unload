@@ -102,7 +102,7 @@ class Template(BaseTemplate):
         headers = ['Unutilized module', 'Unutilized tag/filter']
         table = zip(modules, members)
 
-        return table, headers
+        return list(table), headers
 
     def _get_utilized_members(self):
         """
