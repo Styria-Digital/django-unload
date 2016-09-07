@@ -7,6 +7,7 @@ import os
 from django.apps import apps
 from django.conf import settings
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from ..base import Template
 from ..utils import get_contents
@@ -41,6 +42,25 @@ class TestBase(TestCase):
         cls.only_filter = os.path.join(app_templates, 'only_filter.html')
 
     def test_get_tokens_master_template(self):
+        master_template = Template(
+            template_string=get_contents(self.master_template),
+            name=self.master_template)
+
+        self.assertEqual(master_template.tokens[1].split_contents(),
+                         ['block', 'title'])
+        self.assertEqual(master_template.tokens[3].split_contents(),
+                         ['endblock', 'title'])
+        self.assertEqual(master_template.tokens[5].split_contents(),
+                         ['block', 'body'])
+        self.assertEqual(master_template.tokens[7].split_contents(),
+                         ['endblock', 'body'])
+
+    @override_settings(DEBUG=True)
+    def test_get_tokens_master_template_debug_mode(self):
+        """
+        The settings override is tested only once because the code using the
+        DebugLexer is extracted from Django's source code.
+        """
         master_template = Template(
             template_string=get_contents(self.master_template),
             name=self.master_template)

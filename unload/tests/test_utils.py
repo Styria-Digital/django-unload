@@ -11,8 +11,8 @@ from django.conf import settings
 from django.test import TestCase
 
 from ..utils import (get_app, get_contents, get_filters, get_package_locations,
-                     get_template_files, output_template_name, output_as_table,
-                     update_dictionary)
+                     get_template_files, get_templatetag_members,
+                     output_template_name, output_as_table, update_dictionary)
 
 PYTHON_VERSION = sys.version_info
 
@@ -81,6 +81,29 @@ class TestUtils(TestCase):
         master_html = os.path.join(templates_dir, 'master.html')
         template_files = get_template_files(templates_dir)
         self.assertIn(master_html, template_files)
+
+    def test_get_templatetag_members(self):
+        output = StringIO()
+        template_name = 'example.html'
+        loaded_modules = {'app_tags': [1]}
+        tags, filters = get_templatetag_members(template_name,
+                                                loaded_modules, output)
+        self.assertEqual(1, len(tags.keys()))
+        self.assertIn('app_tags', tags.keys())
+        self.assertIn('example_simple_tag', tags['app_tags'])
+        self.assertIn('example_inclusion_tag', tags['app_tags'])
+        self.assertIn('example_assignment_tag', tags['app_tags'])
+        self.assertIn('app_tags', filters.keys())
+        self.assertIn('plus', filters['app_tags'])
+        self.assertEqual('', output.getvalue())
+
+        # Add a non existing templatetag modules
+        loaded_modules['some_lib'] = [1]
+        tags, filters = get_templatetag_members(template_name,
+                                                loaded_modules, output)
+        self.assertEqual(output.getvalue().strip(),
+                         ('Unable to locate the loaded library! '
+                          'Library: some_lib; Template: example.html'))
 
     def test_start_output(self):
         """

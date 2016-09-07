@@ -2,19 +2,10 @@
 
 from __future__ import unicode_literals
 
-import sys
+from django.template.base import Lexer, Template as BaseTemplate
 
-from distutils.version import StrictVersion
-
-from django.template.base import (
-    Lexer, Template as BaseTemplate, InvalidTemplateLibrary)
-
-from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, BUILT_IN_TAG_VALUES,
-                       BUILT_IN_FILTERS)
-from .utils import get_filters, update_dictionary
-
-if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
-    from django.template.base import get_library
+from .settings import BUILT_IN_TAGS, BUILT_IN_TAG_VALUES, BUILT_IN_FILTERS
+from .utils import get_filters, get_templatetag_members, update_dictionary
 
 
 class Template(BaseTemplate):
@@ -49,7 +40,8 @@ class Template(BaseTemplate):
         self.used_tags = self._get_used_tags()
         self.used_filters = self._get_used_filters()
         # Get the tags and filters available to this template
-        self.tags, self.filters = self._get_templatetags_members()
+        self.tags, self.filters = get_templatetag_members(
+            self.name, self.loaded_modules)
         # Find utilized modules, tags and filters
         self.utilized_modules = self._get_utilized_modules()
         self.utilized_members = self._get_utilized_members()
@@ -166,28 +158,6 @@ class Template(BaseTemplate):
             utilized_modules[module] = utilized
 
         return utilized_modules
-
-    def _get_templatetags_members(self):
-        """
-        Get the names of tags and filters from available templatetags modules.
-
-        :returns: {'somelib': [tags]}, {'somelib': [filters]}
-        """
-        tags = {}
-        filters = {}
-        for module in self.loaded_modules:
-            try:
-                lib = get_library(module)
-            except InvalidTemplateLibrary:
-                msg = ('Unable to locate the loaded library! Library: {}; '
-                       'Template: {}\n').format(module, self.name)
-                sys.stdout.write(msg)
-                tags[module] = []
-                continue
-            tags[module] = lib.tags.keys()
-            filters[module] = lib.filters.keys()
-
-        return tags, filters
 
     def _get_tokens(self):
         """
