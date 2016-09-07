@@ -147,7 +147,7 @@ class TestBase(TestCase):
                          ['extends', '"master.html"'])
         self.assertEqual(from_syntax_without_tags.tokens[2].split_contents(),
                          ['load', 'example_simple_tag', 'plus', 'from',
-                         'app_tags'])
+                          'app_tags'])
         self.assertEqual(from_syntax_without_tags.tokens[4].split_contents(),
                          ['block', 'body'])
         self.assertEqual(from_syntax_without_tags.tokens[6].split_contents(),
@@ -161,10 +161,10 @@ class TestBase(TestCase):
                          ['extends', '"master.html"'])
         self.assertEqual(double_member_load.tokens[2].split_contents(),
                          ['load', 'example_simple_tag', 'plus', 'from',
-                         'app_tags'])
+                          'app_tags'])
         self.assertEqual(double_member_load.tokens[4].split_contents(),
                          ['load', 'example_simple_tag', 'plus', 'from',
-                         'app_tags'])
+                          'app_tags'])
         self.assertEqual(double_member_load.tokens[6].split_contents(),
                          ['block', 'body'])
         self.assertEqual(double_member_load.tokens[8].split_contents(),
@@ -240,6 +240,22 @@ class TestBase(TestCase):
                          {'example_simple_tag': [2],
                           'plus': [2]})
 
+        double_member_load = Template(
+            template_string=get_contents(self.double_member_load),
+            name=self.double_member_load)
+        self.assertEqual(double_member_load.loaded_modules,
+                         {'app_tags': [2, 3]})
+        self.assertEqual(double_member_load.loaded_members,
+                         {'example_simple_tag': [2, 3],
+                          'plus': [2, 3]})
+
+        only_filter = Template(
+            template_string=get_contents(self.only_filter),
+            name=self.only_filter)
+        self.assertEqual(only_filter.loaded_modules,
+                         {'app_tags': [2]})
+        self.assertEqual(only_filter.loaded_members, {'plus': [2]})
+
     def test_get_used_tags_and_filters(self):
 
         master_template = Template(
@@ -287,6 +303,18 @@ class TestBase(TestCase):
             name=self.from_syntax_without_tags)
         self.assertEqual(from_syntax_without_tags.used_tags, [])
         self.assertEqual(from_syntax_without_tags.used_filters, [])
+
+        double_member_load = Template(
+            template_string=get_contents(self.double_member_load),
+            name=self.double_member_load)
+        self.assertEqual(double_member_load.used_tags, [])
+        self.assertEqual(double_member_load.used_filters, [])
+
+        only_filter = Template(
+            template_string=get_contents(self.only_filter),
+            name=self.only_filter)
+        self.assertEqual(only_filter.used_tags, [])
+        self.assertEqual(only_filter.used_filters, ['plus'])
 
     def test_get_templatetags_members(self):
 
@@ -355,6 +383,22 @@ class TestBase(TestCase):
         self.assertIn('app_tags', from_syntax_without_tags.filters.keys())
         self.assertIn('plus', from_syntax_without_tags.filters['app_tags'])
 
+        double_member_load = Template(
+            template_string=get_contents(self.double_member_load),
+            name=self.double_member_load)
+        self.assertIn('app_tags', double_member_load.tags.keys())
+        self.assertIn('example_simple_tag',
+                      double_member_load.tags['app_tags'])
+        self.assertIn('app_tags', double_member_load.filters.keys())
+        self.assertIn('plus', double_member_load.filters['app_tags'])
+
+        only_filter = Template(
+            template_string=get_contents(self.only_filter),
+            name=self.only_filter)
+        self.assertEqual(master_template.tags, {})
+        self.assertIn('app_tags', only_filter.filters.keys())
+        self.assertIn('plus', only_filter.filters['app_tags'])
+
     def test_get_utilized_modules_and_members(self):
         master_template = Template(
             template_string=get_contents(self.master_template),
@@ -408,6 +452,18 @@ class TestBase(TestCase):
             from_syntax_without_tags.utilized_members['example_simple_tag'])
         self.assertFalse(from_syntax_without_tags.utilized_members['plus'])
 
+        double_member_load = Template(
+            template_string=get_contents(self.double_member_load),
+            name=self.double_member_load)
+        self.assertFalse(double_member_load.utilized_modules['app_tags'])
+        self.assertFalse(double_member_load.utilized_members['plus'])
+
+        only_filter = Template(
+            template_string=get_contents(self.only_filter),
+            name=self.only_filter)
+        self.assertTrue(only_filter.utilized_modules['app_tags'])
+        self.assertTrue(only_filter.utilized_members['plus'])
+
     def test_list_duplicates(self):
         master_template = Template(
             template_string=get_contents(self.master_template),
@@ -459,6 +515,26 @@ class TestBase(TestCase):
                          ([], ['Duplicate module', 'Duplicate tag/filter',
                                'Line number']))
 
+        double_member_load = Template(
+            template_string=get_contents(self.double_member_load),
+            name=self.double_member_load)
+        double_member_load_table,\
+            double_member_load_header = double_member_load.list_duplicates()
+        self.assertIn('app_tags', double_member_load_table[0])
+        self.assertIn('plus', double_member_load_table[0][1])
+        self.assertIn('example_simple_tag', double_member_load_table[0][1])
+        self.assertIn('2, 3', double_member_load_table[0])
+        self.assertEqual(double_member_load_header,
+                         ['Duplicate module', 'Duplicate tag/filter',
+                          'Line number'])
+
+        only_filter = Template(
+            template_string=get_contents(self.only_filter),
+            name=self.only_filter)
+        self.assertEqual(only_filter.list_duplicates(),
+                         ([], ['Duplicate module', 'Duplicate tag/filter',
+                               'Line number']))
+
     def test_list_unutilized_items(self):
         master_template = Template(
             template_string=get_contents(self.master_template),
@@ -505,7 +581,27 @@ class TestBase(TestCase):
         table, header = from_syntax_without_tags.list_unutilized_items()
         # Merge the two rows due to unpredictable ordering of members
         all_rows = table[0] + table[1]
-        self.assertEqual(header, ['Unutilized module', 'Unutilized tag/filter'])
+        self.assertEqual(
+            header, ['Unutilized module', 'Unutilized tag/filter'])
         self.assertIn('app_tags', all_rows)
         self.assertIn('example_simple_tag', all_rows)
         self.assertIn('plus', all_rows)
+
+        double_member_load = Template(
+            template_string=get_contents(self.double_member_load),
+            name=self.double_member_load)
+        table, header = double_member_load.list_unutilized_items()
+        # Merge the two rows due to unpredictable ordering of members
+        all_rows = table[0] + table[1]
+        self.assertEqual(
+            header, ['Unutilized module', 'Unutilized tag/filter'])
+        self.assertIn('app_tags', all_rows)
+        self.assertIn('example_simple_tag', all_rows)
+        self.assertIn('plus', all_rows)
+
+        only_filter = Template(
+            template_string=get_contents(self.only_filter),
+            name=self.only_filter)
+        self.assertEqual(only_filter.list_unutilized_items(),
+                         ([], ['Unutilized module', 'Unutilized tag/filter']))
+

@@ -68,17 +68,21 @@ class Template(BaseTemplate):
             lines = self.loaded_modules[module]
             lines_str = ', '.join(map(str, lines))
             if len(lines) > 1 and lines_str not in temp_table.keys():
-                temp_table[lines_str] = [module, None]
+                temp_table[lines_str] = [module, []]
 
         # Find duplicate member loads
         for member in self.loaded_members:
             lines = self.loaded_members[member]
             lines_str = ', '.join(map(str, lines))
+
             if len(lines) > 1:
-                if lines_str not in temp_table.keys():
-                    temp_table[lines_str] = [None, member]
-                else:
-                    temp_table[lines_str][1] = member
+                temp_table[lines_str][1].append(member)
+
+        for key in temp_table:
+            if temp_table[key][1] == []:
+                temp_table[key][1] = None
+            else:
+                temp_table[key][1] = '; '.join(temp_table[key][1])
 
         # Prepare output format
         headers = ['Duplicate module', 'Duplicate tag/filter', 'Line number']
