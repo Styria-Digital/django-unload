@@ -12,7 +12,8 @@ from django.test import TestCase
 
 from ..utils import (get_app, get_contents, get_filters, get_package_locations,
                      get_template_files, get_templatetag_members,
-                     output_template_name, output_as_table, update_dictionary)
+                     output_template_name, output_as_table, update_dictionary,
+                     output_message, get_djangotemplates_engines)
 
 PYTHON_VERSION = sys.version_info
 
@@ -52,6 +53,15 @@ class TestUtils(TestCase):
         self.assertIn('body', contents)
         self.assertIn('{% block title %}', contents)
         self.assertIn('{% block body %}', contents)
+
+    def test_get_djangotemplates_engines(self):
+        dt_engines = get_djangotemplates_engines()
+        self.assertEqual(1, len(dt_engines))
+        engine = dt_engines[0]
+        self.assertEqual('django', engine.name)
+        self.assertTrue(engine.app_dirs)
+        self.assertEqual(1, len(engine.dirs))
+        self.assertTrue(engine.dirs[0].endswith('/demo/templates'))
 
     def test_get_filters(self):
         token_content = '{{ somevariable|cut:"0" }}'
@@ -129,6 +139,22 @@ class TestUtils(TestCase):
         for row in table:
             for value in row:
                 self.assertIn(str(value), output.getvalue())
+
+    def test_output_message(self):
+        output = StringIO()
+        output_message(1, output)
+        self.assertEqual(output.getvalue().strip(), 'No templates were found!')
+
+        output = StringIO()
+        output_message(2, output)
+        self.assertEqual(output.getvalue().strip(),
+                         ('Only the Django Template Engine is currently '
+                          'supported!'))
+
+        output = StringIO()
+        output_message(3, output)
+        self.assertEqual(output.getvalue().strip(),
+                         'Your templates are clean!')
 
     def test_update_dictionary(self):
         dictionary = {}
