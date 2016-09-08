@@ -16,7 +16,7 @@ def example_inclusion_tag():
 
 
 @register.simple_tag
-def example_simple_tag():
+def example_simple_tag(*args):
     """
     An example of a simple tag.
     """

@@ -2,22 +2,30 @@
 
 from __future__ import unicode_literals
 
-import sys
+from django.template.base import Lexer, Template as BaseTemplate
 
-from distutils.version import StrictVersion
-
-from django.template.base import (
-    Lexer, Template as BaseTemplate, InvalidTemplateLibrary)
-
-from .settings import (DJANGO_VERSION, BUILT_IN_TAGS, BUILT_IN_TAG_VALUES,
-                       BUILT_IN_FILTERS)
-from .utils import get_filters, update_dictionary
-
-if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
-    from django.template.base import get_library
+from .settings import BUILT_IN_TAGS, BUILT_IN_TAG_VALUES, BUILT_IN_FILTERS
+from .utils import get_filters, get_templatetag_members, update_dictionary
 
 
 class Template(BaseTemplate):
+    """
+    An override of Django's Template class.
+
+    After calling the parent class, the template is analyzed for duplicates
+    and unnecessary loads.
+
+    Additional attributes:
+    :tokens: a list of tokens found in the template
+    :loaded_modules: a dictionary of loaded modules
+    :loaded_members: a dictionary of loaded tags/filters
+    :used_tags: a list of custom tags used in the template
+    :used_filters: a list of custom filters used in the template
+    :tags: a dictionary of custom tags loaded into the template
+    :filters: a dictionary of custom filters loaded into the template
+    :utilized_modules: a dictionary of utilization statuses
+    :utilized_members: a dictionary of utilization statuses
+    """
 
     def __init__(self, template_string, origin=None, name=None, engine=None):
         super(Template, self).__init__(template_string, origin, name, engine)
@@ -32,7 +40,8 @@ class Template(BaseTemplate):
         self.used_tags = self._get_used_tags()
         self.used_filters = self._get_used_filters()
         # Get the tags and filters available to this template
-        self.tags, self.filters = self._get_templatetags_members()
+        self.tags, self.filters = get_templatetag_members(
+            self.name, self.loaded_modules)
         # Find utilized modules, tags and filters
         self.utilized_modules = self._get_utilized_modules()
         self.utilized_members = self._get_utilized_members()
@@ -51,17 +60,21 @@ class Template(BaseTemplate):
             lines = self.loaded_modules[module]
             lines_str = ', '.join(map(str, lines))
             if len(lines) > 1 and lines_str not in temp_table.keys():
-                temp_table[lines_str] = [module, None]
+                temp_table[lines_str] = [module, []]
 
         # Find duplicate member loads
         for member in self.loaded_members:
             lines = self.loaded_members[member]
             lines_str = ', '.join(map(str, lines))
+
             if len(lines) > 1:
-                if lines_str not in temp_table.keys():
-                    temp_table[lines_str] = [None, member]
-                else:
-                    temp_table[lines_str][1] = member
+                temp_table[lines_str][1].append(member)
+
+        for key in temp_table:
+            if temp_table[key][1] == []:
+                temp_table[key][1] = None
+            else:
+                temp_table[key][1] = '; '.join(temp_table[key][1])
 
         # Prepare output format
         headers = ['Duplicate module', 'Duplicate tag/filter', 'Line number']
@@ -145,28 +158,6 @@ class Template(BaseTemplate):
             utilized_modules[module] = utilized
 
         return utilized_modules
-
-    def _get_templatetags_members(self):
-        """
-        Get the names of tags and filters from available templatetags modules.
-
-        :returns: {'somelib': [tags]}, {'somelib': [filters]}
-        """
-        tags = {}
-        filters = {}
-        for module in self.loaded_modules:
-            try:
-                lib = get_library(module)
-            except InvalidTemplateLibrary:
-                msg = ('Unable to locate the loaded library! Library: {}; '
-                       'Template: {}\n').format(module, self.name)
-                sys.stdout.write(msg)
-                tags[module] = []
-                continue
-            tags[module] = lib.tags.keys()
-            filters[module] = lib.filters.keys()
-
-        return tags, filters
 
     def _get_tokens(self):
         """

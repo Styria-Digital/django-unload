@@ -5,12 +5,19 @@ from __future__ import unicode_literals
 import io
 import os
 import sys
+from distutils.version import StrictVersion
 from mimetypes import guess_type
 
 from pip import get_installed_distributions
 from tabulate import tabulate
 
 from django.apps import apps
+from django.template.base import InvalidTemplateLibrary
+
+from .settings import DJANGO_VERSION
+
+if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
+    from django.template.base import get_library
 
 
 def get_app(app_label):
@@ -96,6 +103,29 @@ def get_template_files(template_dir):
                 templates.append(os.path.join(dirpath, filename))
 
     return templates
+
+
+def get_templatetag_members(template_name, loaded_modules, output=sys.stdout):
+    """
+    Get the names of tags and filters from available templatetags modules.
+
+    :returns: {'somelib': [tags]}, {'somelib': [filters]}
+    """
+    tags = {}
+    filters = {}
+    for module in loaded_modules:
+        try:
+            lib = get_library(module)
+        except InvalidTemplateLibrary:
+            msg = ('Unable to locate the loaded library! Library: {}; '
+                   'Template: {}\n').format(module, template_name)
+            output.write(msg)
+            tags[module] = []
+            continue
+        tags[module] = lib.tags.keys()
+        filters[module] = lib.filters.keys()
+
+    return tags, filters
 
 
 def output_template_name(template_name, output=sys.stdout):
