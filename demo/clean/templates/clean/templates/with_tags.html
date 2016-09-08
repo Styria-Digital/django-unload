@@ -1,0 +1,10 @@
+{% extends "master.html" %}
+{% load app_tags %}
+
+{% block body %}
+    <h1>App template</h1>
+    {% example_inclusion_tag %}
+    <p id="simple_tag">Testing: {% example_simple_tag %}</p>
+    <p id="assignment_tag">Testing: {% example_assignment_tag as example%}</p>
+    <p id="filter">Testing: {% example_simple_tag 2|plus:5 %}</p>
+{% endblock body %}

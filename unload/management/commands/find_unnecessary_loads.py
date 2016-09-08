@@ -8,7 +8,6 @@ from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy as _
 
 from ...logic import list_unnecessary_loads
-from ...utils import get_app
 from ...settings import DJANGO_VERSION
 
 if StrictVersion(DJANGO_VERSION) < StrictVersion('1.8'):
@@ -29,9 +28,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Find the app
         app_label = options.get('app', None)
-        if app_label:
-            app = get_app(app_label)
-        else:
-            app = None
-
-        list_unnecessary_loads(app=app)
+        list_unnecessary_loads(app_label)

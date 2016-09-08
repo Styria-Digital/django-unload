@@ -7,7 +7,7 @@ import os
 from django.conf import settings
 from django.test import TestCase
 
-from ..logic import process_template
+from ..logic import process_template, list_unnecessary_loads
 from ..utils import get_djangotemplates_engines, get_app
 
 
@@ -65,3 +65,15 @@ class TestLogic(TestCase):
         status = process_template(without_tags, dt_engines[0].engine)
         self.assertTrue(status)
 
+    def test_list_unnecessary_loads(self):
+        status = list_unnecessary_loads()
+        self.assertTrue(status)
+
+        status = list_unnecessary_loads('app')
+        self.assertTrue(status)
+
+        status = list_unnecessary_loads('empty')
+        self.assertFalse(status)
+
+        status = list_unnecessary_loads('clean')
+        self.assertFalse(status)

@@ -5,24 +5,29 @@ from __future__ import unicode_literals
 import sys
 
 from .base import Template
-from .utils import (get_contents, get_package_locations,
+from .utils import (get_app, get_contents, get_package_locations,
                     get_djangotemplates_engines, output_as_table,
                     output_template_name, output_message, get_templates)
 
 
-def list_unnecessary_loads(app=None):
+def list_unnecessary_loads(app_label=None):
     """
     Scan the project directory tree for template files and process each and
     every one of them.
 
-    :app: AppConfig object
+    :app_label: String; app label supplied by the user
 
     :returns: None (outputs to the console)
     """
+    if app_label:
+        app = get_app(app_label)
+    else:
+        app = None
 
     dt_engines = get_djangotemplates_engines()
 
     for dt_engine in dt_engines:
+        has_issues = False
         templates = []
         # Get the locations of installed packages
         pkg_locations = get_package_locations()
@@ -31,7 +36,6 @@ def list_unnecessary_loads(app=None):
             templates += get_templates(directory, pkg_locations, app)
 
         if templates:
-            has_issues = False
             for template in templates:
                 status = process_template(template, dt_engine.engine)
                 if status:
@@ -40,6 +44,8 @@ def list_unnecessary_loads(app=None):
                 output_message(reason=3)
         else:
             output_message(reason=1)
+
+    return has_issues
 
 
 def process_template(filepath, engine):
