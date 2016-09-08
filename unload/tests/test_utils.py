@@ -13,7 +13,7 @@ from django.test import TestCase
 from ..utils import (get_app, get_contents, get_filters, get_package_locations,
                      get_template_files, get_templatetag_members,
                      output_template_name, output_as_table, update_dictionary,
-                     output_message, get_djangotemplates_engines)
+                     output_message, get_djangotemplates_engines, get_templates)
 
 PYTHON_VERSION = sys.version_info
 
@@ -36,6 +36,42 @@ class TestUtils(TestCase):
         app = get_app('app')
         self.assertEqual(app.label, 'app')
         self.assertIsInstance(app, AppConfig)
+
+    def test_get_templates(self):
+        templates_dir = settings.TEMPLATES[0]['DIRS'][0]
+        empty_dir = templates_dir.replace('templates', 'empty_dir')
+        master_template = os.path.join(templates_dir, 'master.html')
+        pkg_locations = get_package_locations()
+        app = get_app('app')
+        app_path = os.path.join(app.path, 'templates')
+        # Test templates directory
+        templates = get_templates(templates_dir, pkg_locations)
+        self.assertIn(master_template, templates)
+        # Test empty directory
+        templates = get_templates(empty_dir, pkg_locations)
+        self.assertEqual(templates, [])
+        # Test app directory
+        templates = get_templates(app_path, pkg_locations, app)
+        self.assertEqual(8, len(templates))
+        self.assertIn(os.path.join(app_path, 'app', 'tags',
+                                   'tag_template.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'double_loads.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'double_member_load.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'from_syntax_with_tags.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'from_syntax_without_tags.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'only_filter.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'with_tags.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'without_tags.html'), templates)
+        # Test external directory
+        templates = get_templates(pkg_locations[0], pkg_locations)
+        self.assertEqual(templates, [])
 
     def test_get_contents(self):
         """

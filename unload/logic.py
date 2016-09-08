@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import sys
 
 from .base import Template
-from .utils import (get_contents, get_package_locations, get_template_files,
+from .utils import (get_contents, get_package_locations,
                     get_djangotemplates_engines, output_as_table,
                     output_template_name, output_message, get_templates)
 
@@ -52,7 +52,6 @@ def process_template(filepath, engine):
     :returns: Boolean (does the template file have issues or not)
     """
     has_issues = False
-    add_newline = False
     # Get the template's contents
     source = get_contents(filepath=filepath,
                           encoding=engine.file_charset)
@@ -61,10 +60,8 @@ def process_template(filepath, engine):
     # Prepare output
     duplicate_table, duplicate_headers = template.list_duplicates()
     unutilized_table, unutilized_headers = template.list_unutilized_items()
-
     if duplicate_table or unutilized_table:
         output_template_name(template_name=template.name, output=sys.stdout)
-        add_newline = True
         has_issues = True
     # Display the table that contains duplicate loads
     if duplicate_table:
@@ -74,8 +71,5 @@ def process_template(filepath, engine):
     if unutilized_table:
         output_as_table(table=unutilized_table,
                         headers=unutilized_headers, output=sys.stdout)
-
-    if add_newline:
-        sys.stdout.write('\n')
 
     return has_issues
