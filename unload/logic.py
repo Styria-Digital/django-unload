@@ -7,7 +7,7 @@ import sys
 from .base import Template
 from .utils import (get_contents, get_package_locations, get_template_files,
                     get_djangotemplates_engines, output_as_table,
-                    output_template_name, output_message)
+                    output_template_name, output_message, get_templates)
 
 
 def list_unnecessary_loads(app=None):
@@ -28,20 +28,7 @@ def list_unnecessary_loads(app=None):
         pkg_locations = get_package_locations()
         # Get template directories located within the project
         for directory in dt_engine.template_dirs:
-            within_project = True
-            for location in pkg_locations:
-                if directory.startswith(location):
-                    within_project = False
-                    break
-            # Get the template files from the directory
-            if within_project:
-                # Only one app needs to be scanned
-                if app:
-                    if directory.startswith(app.path):
-                        templates = get_template_files(directory)
-                        break
-                else:
-                    templates += get_template_files(directory)
+            templates += get_templates(directory, pkg_locations, app)
 
         if templates:
             has_issues = False

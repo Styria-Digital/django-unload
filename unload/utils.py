@@ -38,6 +38,35 @@ def get_app(app_label):
     return app
 
 
+def get_templates(directory, pkg_locations, app=None):
+    """
+    Traverse the project's template directories and get the paths of template
+    files.
+
+    :directory: String; path to directory
+    :pkg_locations: a list of paths of 3rd party packages
+    :app: AppConfig object
+
+    :reeturns: a list of paths to template files
+    """
+    templates = []
+    within_project = True
+    for location in pkg_locations:
+        if directory.startswith(location):
+            within_project = False
+            break
+    # Get the template files from the directory
+    if within_project:
+        # Only one app needs to be scanned
+        if app:
+            if directory.startswith(app.path):
+                templates = get_template_files(directory)
+        else:
+            templates += get_template_files(directory)
+
+    return templates
+
+
 def get_contents(filepath, encoding='UTF-8'):
     """
     Read the contents of the template file.
@@ -54,6 +83,11 @@ def get_contents(filepath, encoding='UTF-8'):
 
 
 def get_djangotemplates_engines():
+    """
+    Create template engines from the parameters in the settings file.
+
+    :returns: a list of DjangoTemplates instances
+    """
     engines = []
     template_settings = settings.TEMPLATES
 
@@ -155,6 +189,7 @@ def output_template_name(template_name, output=sys.stdout):
     :template_name: String
     :output: output destination (console=sys.stdout; testing=StringIO)
     """
+    output.write('-' * len(template_name) + '\n')
     output.write(template_name + '\n')
 
 
