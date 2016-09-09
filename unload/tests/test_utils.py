@@ -9,10 +9,22 @@ from django import VERSION as DJANGO_VERSION
 from django.apps.config import AppConfig
 from django.conf import settings
 from django.test import TestCase
+from django.test.utils import override_settings
 
-from ..utils import (get_app, get_contents, get_filters, get_package_locations,
-                     get_template_files, get_templatetag_members,
-                     output_template_name, output_as_table, update_dictionary)
+from ..utils import (
+                     get_app,
+                     get_contents,
+                     get_djangotemplates_engines,
+                     get_filters,
+                     get_package_locations,
+                     get_template_files,
+                     get_templates,
+                     get_templatetag_members,
+                     output_as_table,
+                     output_message,
+                     output_template_name,
+                     update_dictionary
+                     )
 
 PYTHON_VERSION = sys.version_info
 
@@ -36,6 +48,42 @@ class TestUtils(TestCase):
         self.assertEqual(app.label, 'app')
         self.assertIsInstance(app, AppConfig)
 
+    def test_get_templates(self):
+        templates_dir = settings.TEMPLATES[0]['DIRS'][0]
+        empty_dir = templates_dir.replace('templates', 'empty_dir')
+        master_template = os.path.join(templates_dir, 'master.html')
+        pkg_locations = get_package_locations()
+        app = get_app('app')
+        app_path = os.path.join(app.path, 'templates')
+        # Test templates directory
+        templates = get_templates(templates_dir, pkg_locations)
+        self.assertIn(master_template, templates)
+        # Test empty directory
+        templates = get_templates(empty_dir, pkg_locations)
+        self.assertEqual(templates, [])
+        # Test app directory
+        templates = get_templates(app_path, pkg_locations, app)
+        self.assertEqual(8, len(templates))
+        self.assertIn(os.path.join(app_path, 'app', 'tags',
+                                   'tag_template.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'double_loads.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'double_member_load.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'from_syntax_with_tags.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'from_syntax_without_tags.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'only_filter.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'with_tags.html'), templates)
+        self.assertIn(os.path.join(app_path, 'app', 'templates',
+                                   'without_tags.html'), templates)
+        # Test external directory
+        templates = get_templates(pkg_locations[0], pkg_locations)
+        self.assertEqual(templates, [])
+
     def test_get_contents(self):
         """
         Test the get_contents function on the master.html template. Avoid
@@ -52,6 +100,20 @@ class TestUtils(TestCase):
         self.assertIn('body', contents)
         self.assertIn('{% block title %}', contents)
         self.assertIn('{% block body %}', contents)
+
+    def test_get_djangotemplates_engines(self):
+        dt_engines = get_djangotemplates_engines()
+        self.assertEqual(1, len(dt_engines))
+        engine = dt_engines[0]
+        self.assertEqual('django', engine.name)
+        self.assertTrue(engine.app_dirs)
+        self.assertEqual(1, len(engine.dirs))
+        self.assertTrue(engine.dirs[0].endswith('/demo/templates'))
+
+    @override_settings(TEMPLATES=[{'BACKEND': 'foo.bar.Baz'}])
+    def test_other_template_engines(self):
+        dt_engines = get_djangotemplates_engines()
+        self.assertEqual(0, len(dt_engines))
 
     def test_get_filters(self):
         token_content = '{{ somevariable|cut:"0" }}'
@@ -129,6 +191,22 @@ class TestUtils(TestCase):
         for row in table:
             for value in row:
                 self.assertIn(str(value), output.getvalue())
+
+    def test_output_message(self):
+        output = StringIO()
+        output_message(1, output)
+        self.assertEqual(output.getvalue().strip(), 'No templates were found!')
+
+        output = StringIO()
+        output_message(2, output)
+        self.assertEqual(output.getvalue().strip(),
+                         ('Only the Django Template Engine is currently '
+                          'supported!'))
+
+        output = StringIO()
+        output_message(3, output)
+        self.assertEqual(output.getvalue().strip(),
+                         'Your templates are clean!')
 
     def test_update_dictionary(self):
         dictionary = {}

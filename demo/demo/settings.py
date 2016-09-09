@@ -38,6 +38,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app',
+    'empty',
+    'clean',
     'unload',
 )
 
@@ -67,7 +69,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = 'demo.wsgi.application'

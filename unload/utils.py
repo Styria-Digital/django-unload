@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import io
 import os
 import sys
+from copy import deepcopy
 from distutils.version import StrictVersion
 from mimetypes import guess_type
 
@@ -12,6 +13,8 @@ from pip import get_installed_distributions
 from tabulate import tabulate
 
 from django.apps import apps
+from django.conf import settings
+from django.template.backends.django import DjangoTemplates
 from django.template.base import InvalidTemplateLibrary
 
 from .settings import DJANGO_VERSION
@@ -35,6 +38,35 @@ def get_app(app_label):
     return app
 
 
+def get_templates(directory, pkg_locations, app=None):
+    """
+    Traverse the project's template directories and get the paths of template
+    files.
+
+    :directory: String; path to directory
+    :pkg_locations: a list of paths of 3rd party packages
+    :app: AppConfig object
+
+    :reeturns: a list of paths to template files
+    """
+    templates = []
+    within_project = True
+    for location in pkg_locations:
+        if directory.startswith(location):
+            within_project = False
+            break
+    # Get the template files from the directory
+    if within_project:
+        # Only one app needs to be scanned
+        if app:
+            if directory.startswith(app.path):
+                templates = get_template_files(directory)
+        else:
+            templates += get_template_files(directory)
+
+    return templates
+
+
 def get_contents(filepath, encoding='UTF-8'):
     """
     Read the contents of the template file.
@@ -48,6 +80,28 @@ def get_contents(filepath, encoding='UTF-8'):
     """
     with io.open(filepath, encoding=encoding) as fp:
         return fp.read()
+
+
+def get_djangotemplates_engines():
+    """
+    Create template engines from the parameters in the settings file.
+
+    :returns: a list of DjangoTemplates instances
+    """
+    engines = []
+    template_settings = settings.TEMPLATES
+
+    for params in template_settings:
+        copied_params = deepcopy(params)
+        backend = copied_params.pop('BACKEND')
+
+        if backend == 'django.template.backends.django.DjangoTemplates':
+            copied_params['NAME'] = 'django'
+            engines.append(DjangoTemplates(params=copied_params))
+        else:
+            output_message(reason=2)
+
+    return engines
 
 
 def get_filters(content):
@@ -133,7 +187,9 @@ def output_template_name(template_name, output=sys.stdout):
     Output the template's name.
 
     :template_name: String
+    :output: output destination (console=sys.stdout; testing=StringIO)
     """
+    output.write('-' * len(template_name) + '\n')
     output.write(template_name + '\n')
 
 
@@ -143,9 +199,25 @@ def output_as_table(table, headers, output=sys.stdout, tablefmt='psql'):
 
     :table: a list of lists
     :headers: a list of strings
+    :output: output destination (console=sys.stdout; testing=StringIO)
     :tablefmt: String (specific to the tabulate library)
     """
     output.write(tabulate(table, headers, tablefmt=tablefmt) + '\n')
+
+
+def output_message(reason, output=sys.stdout):
+    """
+    Output a message to the console.
+
+    :reason: Integer (see the dictionary below)
+    :output: output destination (console=sys.stdout; testing=StringIO)
+    """
+    reasons = {
+        1: 'No templates were found!',
+        2: 'Only the Django Template Engine is currently supported!',
+        3: 'Your templates are clean!'
+    }
+    output.write(reasons[reason] + '\n')
 
 
 def update_dictionary(dictionary, key, value):
