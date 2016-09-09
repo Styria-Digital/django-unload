@@ -28,4 +28,5 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Find the app
         app_label = options.get('app', None)
-        list_unnecessary_loads(app_label)
+        self.stdout.write(
+            'Has issues: {}'.format(str(list_unnecessary_loads(app_label))))
