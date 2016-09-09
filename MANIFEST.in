@@ -1,0 +1,6 @@
+# Misc
+include README.rst
+include LICENSE
+
+# Testing
+recursive-include demo *.html
