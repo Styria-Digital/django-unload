@@ -8,13 +8,12 @@ README
     :target: https://coveralls.io/github/Styria-Digital/django-unload?branch=master
 
 
-**Work in progress!**
-
 Requirements
 ------------
 
 * Python 2.7+, 3.4+
 * Django 1.8 (1.9 support will be added later)
+* Tabulate
 
 
 Setup
@@ -40,9 +39,9 @@ Output
 ------
 The output is sent to the console. Although all template files are scanned, only templates with issues and the issues in question are displayed. The issues are displayed in two tables:
 
-1. The first table points to duplicate loads which can sometimes be identical. The second table
+1. The first table points to duplicate loads;
 
-2. The second table simply lists unutilized modules, tags and filters.
+2. The second table simply lists unutilized modules, tags and filters;
 
 Example
 -------
