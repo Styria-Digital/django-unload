@@ -23,7 +23,6 @@ install:
   - pip install tabulate
   - pip install coveralls
   - pip install tox
-  - pip install Jinja2
   - python setup.py -q install
 
 script:
