@@ -1,5 +1,5 @@
 README
-======
+******
 
 .. image:: https://travis-ci.org/Styria-Digital/django-unload.svg?branch=master
     :target: https://travis-ci.org/Styria-Digital/django-unload
@@ -11,6 +11,10 @@ README
     :target: https://pypi.python.org/pypi/django-unload
     :alt: Version
 
+*django-unload* is a maintenance application used for performing template cleanup. It is used primarily as a command-line tool that scans the entire project or the specified app and returns the results in a tabular format.
+
+Installation
+============
 
 Requirements
 ------------
@@ -24,7 +28,7 @@ Installation
 ------------
 To install the package, type:
 
-    ``$ pip install django-unload``
+``$ pip install django-unload``
 
 Setup
 -----
@@ -37,30 +41,61 @@ Ensure that ``'unload'`` is in your project's ``INSTALLED_APPS``::
        ...
    ]
 
-Usage
------
-The plugin is used as a command line tool. It can either be used to scan all template files in the project or the templates in the specified Django app.
+User Guide
+==========
 
-Scan all template files in the project: ``$ python manage.py find_unnecessary_loads``.
+*django-unload* is used as a command line tool. It can either be used to scan all template files in the project or the templates in the specified Django app.
 
-Scan all template files in the specified app: ``$ python manage.py find_unnecessary_loads --app <app_name>``.
+In order for the plugin to function properly, all third-pary packages located in the *INSTALLED_APPS* setting (e.g. django-debug-toolbar) should be installed using *pip*. *django-unload* uses *pip* to differentiate between the project's templates and the templates of packages located in the installed apps (e.g. admin templates).
 
-**Warning**
+Scan the project
+----------------
 
-1. The assumption is that all your 3rd party packages located in the *INSTALLED_APPS* setting (e.g. django-debug-toolbar) are installed using *pip*. The plugin uses *pip* to differentiate the project's templates from the templates located in the installed apps;
+To scan all template files in the project, type:
 
-2. If you get a *TemplateSyntaxError*, the template in question is probably outdated and/or has not been used in a while;
+    ``$ python manage.py find_unnecessary_loads``.
+
+Scan an app
+-----------
+
+To scan a specific app, type:
+
+    ``$ python manage.py find_unnecessary_loads --app <app_name>``.
+
 
 Output
 ------
+
 The output is sent to the console. Although all template files are scanned, only templates with issues and the issues in question are displayed. The issues are displayed in two tables:
 
 1. The first table points to duplicate loads;
 
+    +--------------------+------------------------+---------------+
+    | Duplicate module   |   Duplicate tag/filter | Line number   |
+    +====================+========================+===============+
+    | some_module        |                        | 10, 23        |
+    +--------------------+------------------------+---------------+
+    | some_other_module  | some_tag               | 14, 47        |
+    +--------------------+------------------------+---------------+
+
+
 2. The second table simply lists unutilized modules, tags and filters;
 
-Example
--------
+    +---------------------------+-------------------------+
+    | Unutilized module         |   Unutilized tag/filter |
+    +===========================+=========================+
+    | some_module               | some_tag                |
+    +---------------------------+-------------------------+
+    | some_other_module         | some_filter             |
+    +---------------------------+-------------------------+
+
+
+**WARNING:** If you get a *TemplateSyntaxError*, the template in question is probably outdated and/or has not been used in a while.
+
+Example Output
+--------------
+
+
 /path/to/template.html
 
 +--------------------+------------------------+---------------+
@@ -70,6 +105,8 @@ Example
 +--------------------+------------------------+---------------+
 | some_other_module  | some_tag               | 14, 47        |
 +--------------------+------------------------+---------------+
+
+
 
 +---------------------------+-------------------------+
 | Unutilized module         |   Unutilized tag/filter |
