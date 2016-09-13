@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='django-unload',
-    version='0.3.2',
+    version='0.3.3',
     url="https://github.com/Styria-Digital/django-unload",
     author='Styria Digital Services',
     description='Remove unused custom Django template tags and filters',
