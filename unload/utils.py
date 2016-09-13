@@ -152,9 +152,10 @@ def get_template_files(template_dir):
     for dirpath, dirnames, filenames in os.walk(template_dir):
         for filename in filenames:
             filetype = guess_type(filename)
-            maintype, subtype = filetype[0].split('/')
-            if maintype == 'text':
-                templates.append(os.path.join(dirpath, filename))
+            if filetype != (None, None):
+                maintype, subtype = filetype[0].split('/')
+                if maintype == 'text':
+                    templates.append(os.path.join(dirpath, filename))
 
     return templates
 
@@ -189,7 +190,7 @@ def output_template_name(template_name, output=sys.stdout):
     :template_name: String
     :output: output destination (console=sys.stdout; testing=StringIO)
     """
-    output.write('-' * len(template_name) + '\n')
+    output.write('=' * len(template_name) + '\n')
     output.write(template_name + '\n')
 
 
