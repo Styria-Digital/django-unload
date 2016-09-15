@@ -13,6 +13,8 @@ README
 
 *django-unload* is a maintenance application used for performing template cleanup. It is used primarily as a command-line tool that scans the entire project or the specified app and returns the results in a tabular format.
 
+Documentation: http://django-unload.readthedocs.io/
+
 Installation
 ============
 
