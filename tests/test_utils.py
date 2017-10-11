@@ -11,7 +11,7 @@ from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ..utils import (
+from unload.utils import (
                      get_app,
                      get_contents,
                      get_djangotemplates_engines,

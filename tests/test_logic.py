@@ -7,8 +7,8 @@ import os
 from django.conf import settings
 from django.test import TestCase
 
-from ..logic import process_template, list_unnecessary_loads
-from ..utils import get_djangotemplates_engines, get_app
+from unload.logic import process_template, list_unnecessary_loads
+from unload.utils import get_djangotemplates_engines, get_app
 
 
 class TestLogic(TestCase):

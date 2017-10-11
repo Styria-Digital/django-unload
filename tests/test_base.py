@@ -9,8 +9,8 @@ from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ..base import Template
-from ..utils import get_contents
+from unload.base import Template
+from unload.utils import get_contents
 
 
 class TestBase(TestCase):
@@ -624,4 +624,3 @@ class TestBase(TestCase):
             name=self.only_filter)
         self.assertEqual(only_filter.list_unutilized_items(),
                          ([], ['Unutilized module', 'Unutilized tag/filter']))
-
