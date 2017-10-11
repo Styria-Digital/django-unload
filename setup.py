@@ -21,11 +21,28 @@ setup(
         'django>=1.8, <1.9',
         'tabulate==0.7.5',
     ],
+    extras_require={
+        'dev': [
+            'autopep8==1.3.3',
+            'flake8==3.4.1',
+            'ipdb==0.10.3',
+        ],
+        'test': [
+            'coverage==4.4.1',
+            'pytest==3.2.3',
+            'pytest-cov==2.5.1',
+            'pytest-django==3.1.2',
+            'pytest-runner==2.12.1',
+            'pytest-sugar==0.9.0',
+            'tox==2.9.1'
+        ],
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Framework :: Django :: 1.8',
+        'Framework :: Django :: 1.11',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
