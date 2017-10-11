@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import os
 import sys
 
-from django import VERSION as DJANGO_VERSION
 from django.apps.config import AppConfig
 from django.conf import settings
 from django.test import TestCase
@@ -127,10 +126,8 @@ class TestUtils(TestCase):
         Get the directory path containing the installed 3rd party packages (in
         this instance the site-packages directory located in .tox/).
         """
-        end_of_path = ('.tox/py{0}{1}-django{2}{3}/lib/'
-                       'python{0}.{1}/site-packages').format(
-            PYTHON_VERSION.major, PYTHON_VERSION.minor,
-            DJANGO_VERSION[0], DJANGO_VERSION[1])
+        end_of_path = ('/lib/python{0}.{1}/site-packages').format(
+            PYTHON_VERSION.major, PYTHON_VERSION.minor)
         pkg_locations = get_package_locations()
         for location in pkg_locations:
             self.assertTrue(location.endswith(end_of_path))
