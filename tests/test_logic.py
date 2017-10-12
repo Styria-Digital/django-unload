@@ -43,9 +43,8 @@ class TestLogic(TestCase):
         status = process_template(from_syntax_with_tags, dt_engines[0].engine)
         self.assertFalse(status)
 
-        from_syntax_without_tags = os.path.join(app_path, 'app',
-                                                'templates',
-                                                'from_syntax_without_tags.html')
+        from_syntax_without_tags = os.path.join(
+            app_path, 'app', 'templates', 'from_syntax_without_tags.html')
         status = process_template(from_syntax_without_tags,
                                   dt_engines[0].engine)
         self.assertTrue(status)

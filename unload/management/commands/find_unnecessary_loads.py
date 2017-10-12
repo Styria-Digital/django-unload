@@ -2,13 +2,10 @@
 
 from __future__ import unicode_literals
 
-from distutils.version import StrictVersion
-
 from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext_lazy as _
 
 from ...logic import list_unnecessary_loads
-from ...settings import DJANGO_VERSION
 
 
 class Command(BaseCommand):

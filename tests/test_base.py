@@ -35,8 +35,8 @@ class TestBase(TestCase):
         cls.without_tags = os.path.join(app_templates, 'without_tags.html')
         cls.from_syntax_with_tags = os.path.join(app_templates,
                                                  'from_syntax_with_tags.html')
-        cls.from_syntax_without_tags = os.path.join(app_templates,
-                                                    'from_syntax_without_tags.html')
+        cls.from_syntax_without_tags = os.path.join(
+            app_templates, 'from_syntax_without_tags.html')
         cls.double_member_load = os.path.join(app_templates,
                                               'double_member_load.html')
         cls.only_filter = os.path.join(app_templates, 'only_filter.html')

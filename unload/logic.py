@@ -5,16 +5,14 @@ from __future__ import unicode_literals
 import sys
 
 from .base import Template
-from .utils import (
-                    get_app,
+from .utils import (get_app,
                     get_contents,
                     get_package_locations,
                     get_djangotemplates_engines,
                     output_as_table,
                     output_template_name,
                     output_message,
-                    get_templates
-                    )
+                    get_templates)
 
 
 def list_unnecessary_loads(app_label=None):

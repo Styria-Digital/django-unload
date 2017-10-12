@@ -10,20 +10,18 @@ from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from unload.utils import (
-                     get_app,
-                     get_contents,
-                     get_djangotemplates_engines,
-                     get_filters,
-                     get_package_locations,
-                     get_template_files,
-                     get_templates,
-                     get_templatetag_members,
-                     output_as_table,
-                     output_message,
-                     output_template_name,
-                     update_dictionary
-                     )
+from unload.utils import (get_app,
+                          get_contents,
+                          get_djangotemplates_engines,
+                          get_filters,
+                          get_package_locations,
+                          get_template_files,
+                          get_templates,
+                          get_templatetag_members,
+                          output_as_table,
+                          output_message,
+                          output_template_name,
+                          update_dictionary)
 
 PYTHON_VERSION = sys.version_info
 

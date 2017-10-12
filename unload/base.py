@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from django.template.base import Lexer, Template as BaseTemplate
+from django.template.base import Template as BaseTemplate
 
 from .compat import get_lexer
 from .settings import BUILT_IN_TAGS, BUILT_IN_TAG_VALUES, BUILT_IN_FILTERS
@@ -200,13 +200,15 @@ class Template(BaseTemplate):
                     # Add loaded members
                     loaded_members = token_content[1:-2]
                     for member in loaded_members:
-                        members = update_dictionary(members, member, token.lineno)
+                        members = update_dictionary(
+                            members, member, token.lineno)
                 # Regular syntax
                 else:
                     # Multiple modules can be imported in the same load block
                     templatetags_modules = token_content[1:]
                     for module in templatetags_modules:
-                        modules = update_dictionary(modules, module, token.lineno)
+                        modules = update_dictionary(
+                            modules, module, token.lineno)
 
         return modules, members
 
