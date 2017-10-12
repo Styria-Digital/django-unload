@@ -46,7 +46,7 @@ install:
   - pip install -U $DJANGO
 
 script:
-  - pytest
+  - pytest --cov=unload
 
 after_success:
   - coveralls
