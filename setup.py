@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+
 from setuptools import find_packages, setup
 
 setup(
@@ -18,7 +19,7 @@ setup(
     zip_safe=False,
     keywords='django template tag filter',
     install_requires=[
-        'django>=1.8',
+        'django>=1.8,<2.0',
         'tabulate==0.7.5',
     ],
     extras_require={
@@ -26,6 +27,7 @@ setup(
             'autopep8==1.3.3',
             'flake8==3.4.1',
             'ipdb==0.10.3',
+            'isort==4.2.15'
         ],
         'test': [
             'coverage==4.4.1',

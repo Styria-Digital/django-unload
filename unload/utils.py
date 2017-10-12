@@ -8,14 +8,14 @@ import sys
 from copy import deepcopy
 from mimetypes import guess_type
 
-from pip import get_installed_distributions
-from tabulate import tabulate
-
 from django.apps import apps
 from django.conf import settings
 from django.template.backends.django import DjangoTemplates
+from tabulate import tabulate
 
-from .compat import get_templatetag_library, InvalidTemplateLibrary
+from pip import get_installed_distributions
+
+from .compat import InvalidTemplateLibrary, get_templatetag_library
 
 
 def get_app(app_label):

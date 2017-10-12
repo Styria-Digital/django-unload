@@ -7,12 +7,12 @@ import sys
 from .base import Template
 from .utils import (get_app,
                     get_contents,
-                    get_package_locations,
                     get_djangotemplates_engines,
+                    get_package_locations,
+                    get_templates,
                     output_as_table,
-                    output_template_name,
                     output_message,
-                    get_templates)
+                    output_template_name)
 
 
 def list_unnecessary_loads(app_label=None):

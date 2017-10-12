@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.template.base import Template as BaseTemplate
 
 from .compat import get_lexer
-from .settings import BUILT_IN_TAGS, BUILT_IN_TAG_VALUES, BUILT_IN_FILTERS
+from .settings import BUILT_IN_FILTERS, BUILT_IN_TAG_VALUES, BUILT_IN_TAGS
 from .utils import get_filters, get_templatetag_members, update_dictionary
 
 
