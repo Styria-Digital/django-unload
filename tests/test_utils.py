@@ -9,6 +9,7 @@ from django.apps.config import AppConfig
 from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.utils.six import StringIO
 
 from unload.utils import (get_app,
                           get_contents,
@@ -24,11 +25,6 @@ from unload.utils import (get_app,
                           update_dictionary)
 
 PYTHON_VERSION = sys.version_info
-
-if PYTHON_VERSION.major == 2:
-    from StringIO import StringIO
-elif PYTHON_VERSION.major == 3:
-    from io import StringIO
 
 
 class TestUtils(TestCase):

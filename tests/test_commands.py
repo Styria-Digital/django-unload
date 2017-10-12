@@ -2,17 +2,9 @@
 
 from __future__ import unicode_literals
 
-import sys
-
 from django.core.management import call_command
 from django.test import TestCase
-
-PYTHON_VERSION = sys.version_info
-
-if PYTHON_VERSION.major == 2:
-    from StringIO import StringIO
-elif PYTHON_VERSION.major == 3:
-    from io import StringIO
+from django.utils.six import StringIO
 
 
 class TestCommand(TestCase):
