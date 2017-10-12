@@ -24,6 +24,13 @@ except ImportError:
     get_installed_libraries = None
     import_library = None
 
+# The future templatetags module was removed in Django 1.10
+try:
+    from django.templatetags.future import register as future_lib
+    FUTURE_FILTERS = future_lib.filters.keys()
+except ImportError:
+    FUTURE_FILTERS = {}
+
 
 def get_lexer(template_string, origin=None, debug=False):
     """Get the Lexer instance.
