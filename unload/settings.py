@@ -55,6 +55,8 @@ BUILT_IN_TAGS = {
     'lorem': None,
     'not': None,
     'now': None,
+    'regroup': None,
+    'resetcycle': None,
     'spaceless': 'endspaceless',
     'ssi': None,
     'templatetag': None,
@@ -77,7 +79,10 @@ I18N_TAGS = {
 }
 
 L10N_TAGS = {
-    'localize': 'endlocalize'
+    'localize': 'endlocalize',
+    'localtime': 'endlocaltime',
+    'timezone': 'endtimezone',
+    'get_current_timezone': None
 }
 
 CACHE_TAGS = {
