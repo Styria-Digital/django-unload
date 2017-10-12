@@ -35,7 +35,7 @@ matrix:
       env: DJANGO="Django>=1.11,<2.0"
 
 before_install:
-    - pip install sphinx flake8
+    - pip install flake8 sphinx sphinx_rtd_theme
     - flake8
     - sphinx-build -b html docs docs/_build
 
