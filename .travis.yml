@@ -34,19 +34,21 @@ matrix:
     - python: 3.6
       env: DJANGO="Django>=1.11,<2.0"
 
-
-notifications:
-  email: false
-
-env:
-  - DJANGO_VERSION=1.8.18
+before_install:
+    - pip install sphinx flake8
+    - flake8
+    - sphinx-build -b html docs docs/_build
 
 install:
-  - pip install -e .[test]
-  - pip install -U $DJANGO
+    - pip install -e .[test]
+    - pip install -U $DJANGO
 
 script:
-  - pytest --cov=unload
+    - pytest --cov=unload
 
 after_success:
-  - coveralls
+    - coveralls
+
+
+notifications:
+    email: false
