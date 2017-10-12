@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='django-unload',
-    version='0.3.3',
+    version='0.4',
     url="https://github.com/Styria-Digital/django-unload",
     author='Styria Digital Services',
     description='Remove unused custom Django template tags and filters',
@@ -18,7 +18,7 @@ setup(
     zip_safe=False,
     keywords='django template tag filter',
     install_requires=[
-        'django>=1.8, <1.9',
+        'django>=1.8',
         'tabulate==0.7.5',
     ],
     extras_require={
@@ -36,12 +36,18 @@ setup(
             'pytest-sugar==0.9.0',
             'tox==2.9.1'
         ],
+        'docs': [
+            'sphinx==1.6.4',
+            'sphinx-rtd-theme==0.2.4'
+        ]
     },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Framework :: Django :: 1.8',
+        'Framework :: Django :: 1.9',
+        'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
@@ -52,6 +58,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
 )

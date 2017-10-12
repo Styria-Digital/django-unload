@@ -1,6 +1,13 @@
 # Misc
-include README.rst
 include LICENSE
+include MANIFEST.in
+include CHANGELOG.md
+include README.rst
+include setup.cfg
+include setup.py
+include *.txt
 
 # Testing
 recursive-include demo *.html
+
+recursive-exclude tests *
