@@ -2,26 +2,27 @@
 from __future__ import unicode_literals
 
 import sys
-from distutils.version import StrictVersion
 
 from django import get_version
+from django.template.defaultfilters import register as filter_lib
+from django.templatetags.cache import register as cache_lib
+from django.templatetags.i18n import register as i18n_lib
+from django.templatetags.l10n import register as l10n_lib
+from django.templatetags.static import register as static_lib
+from django.templatetags.tz import register as tz_lib
 
-DJANGO_VERSION = get_version()
-
-if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
-    from django.template.defaultfilters import register as filter_lib
-    from django.templatetags.cache import register as cache_lib
+# The future templatetags module was removed in Django 1.10
+try:
     from django.templatetags.future import register as future_lib
-    from django.templatetags.i18n import register as i18n_lib
-    from django.templatetags.l10n import register as l10n_lib
-    from django.templatetags.static import register as static_lib
-    from django.templatetags.tz import register as tz_lib
+    FUTURE_FILTERS = future_lib.filters.keys()
+except ImportError:
+    FUTURE_FILTERS = {}
 
 PYTHON_VERSION = sys.version_info
+DJANGO_VERSION = get_version()
 
 BUILT_IN_FILTERS = filter_lib.filters.keys()
 CACHE_FILTERS = cache_lib.filters.keys()
-FUTURE_FILTERS = future_lib.filters.keys()
 I18N_FILTERS = i18n_lib.filters.keys()
 L10N_FILTERS = l10n_lib.filters.keys()
 STATIC_FILTERS = static_lib.filters.keys()

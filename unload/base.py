@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 from django.template.base import Lexer, Template as BaseTemplate
 
+from .compat import get_lexer
 from .settings import BUILT_IN_TAGS, BUILT_IN_TAG_VALUES, BUILT_IN_FILTERS
 from .utils import get_filters, get_templatetag_members, update_dictionary
 
@@ -168,12 +169,11 @@ class Template(BaseTemplate):
 
         :returns: a list of Tokens
         """
-        # From Django's source code
-        if self.engine.debug:
-            from django.template.debug import DebugLexer
-            lexer = DebugLexer(self.source, self.origin)
-        else:
-            lexer = Lexer(self.source, self.origin)
+        lexer = get_lexer(
+            template_string=self.source,
+            origin=self.origin,
+            debug=self.engine.debug
+        )
 
         return lexer.tokenize()
 
