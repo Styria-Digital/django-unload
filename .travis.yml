@@ -35,8 +35,9 @@ matrix:
       env: DJANGO="Django>=1.11,<2.0"
 
 before_install:
-    - pip install flake8 sphinx sphinx_rtd_theme
+    - pip install flake8 sphinx sphinx_rtd_theme isort
     - flake8
+    - isort --recursive --check-only
     - sphinx-build -b html docs docs/_build
 
 install:
@@ -48,7 +49,6 @@ script:
 
 after_success:
     - coveralls
-
 
 notifications:
     email: false

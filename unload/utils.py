@@ -11,9 +11,8 @@ from mimetypes import guess_type
 from django.apps import apps
 from django.conf import settings
 from django.template.backends.django import DjangoTemplates
-from tabulate import tabulate
-
 from pip import get_installed_distributions
+from tabulate import tabulate
 
 from .compat import InvalidTemplateLibrary, get_templatetag_library
 
