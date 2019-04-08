@@ -1,0 +1,12 @@
+[run]
+branch=True
+source=unload
+
+[report]
+show_missing = True
+omit =
+    */migrations/*
+    */tests/*
+    */demo/settings/*
+    */demo/wsgi.py
+    */manage.py

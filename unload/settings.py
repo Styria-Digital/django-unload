@@ -1,27 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import sys
-from distutils.version import StrictVersion
-
-from django import get_version
-
-DJANGO_VERSION = get_version()
-
-if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
-    from django.template.defaultfilters import register as filter_lib
-    from django.templatetags.cache import register as cache_lib
-    from django.templatetags.future import register as future_lib
-    from django.templatetags.i18n import register as i18n_lib
-    from django.templatetags.l10n import register as l10n_lib
-    from django.templatetags.static import register as static_lib
-    from django.templatetags.tz import register as tz_lib
-
-PYTHON_VERSION = sys.version_info
+from django.template.defaultfilters import register as filter_lib
+from django.templatetags.cache import register as cache_lib
+from django.templatetags.i18n import register as i18n_lib
+from django.templatetags.l10n import register as l10n_lib
+from django.templatetags.static import register as static_lib
+from django.templatetags.tz import register as tz_lib
+from django.utils import six
 
 BUILT_IN_FILTERS = filter_lib.filters.keys()
 CACHE_FILTERS = cache_lib.filters.keys()
-FUTURE_FILTERS = future_lib.filters.keys()
 I18N_FILTERS = i18n_lib.filters.keys()
 L10N_FILTERS = l10n_lib.filters.keys()
 STATIC_FILTERS = static_lib.filters.keys()
@@ -54,6 +43,8 @@ BUILT_IN_TAGS = {
     'lorem': None,
     'not': None,
     'now': None,
+    'regroup': None,
+    'resetcycle': None,
     'spaceless': 'endspaceless',
     'ssi': None,
     'templatetag': None,
@@ -76,7 +67,10 @@ I18N_TAGS = {
 }
 
 L10N_TAGS = {
-    'localize': 'endlocalize'
+    'localize': 'endlocalize',
+    'localtime': 'endlocaltime',
+    'timezone': 'endtimezone',
+    'get_current_timezone': None
 }
 
 CACHE_TAGS = {
@@ -89,13 +83,13 @@ STATIC_TAGS = {
     'get_static_prefix': None
 }
 
-if PYTHON_VERSION.major == 2:
+if six.PY2:
     BUILT_IN_TAG_VALUES = set(BUILT_IN_TAGS.values() +
                               I18N_TAGS.values() +
                               L10N_TAGS.values() +
                               CACHE_TAGS.values() +
                               STATIC_TAGS.values())
-elif PYTHON_VERSION.major == 3:
+elif six.PY3:
     BUILT_IN_TAG_VALUES = set(list(BUILT_IN_TAGS.values()) +
                               list(I18N_TAGS.values()) +
                               list(L10N_TAGS.values()) +

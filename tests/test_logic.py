@@ -7,8 +7,8 @@ import os
 from django.conf import settings
 from django.test import TestCase
 
-from ..logic import process_template, list_unnecessary_loads
-from ..utils import get_djangotemplates_engines, get_app
+from unload.logic import list_unnecessary_loads, process_template
+from unload.utils import get_app, get_djangotemplates_engines
 
 
 class TestLogic(TestCase):
@@ -43,9 +43,8 @@ class TestLogic(TestCase):
         status = process_template(from_syntax_with_tags, dt_engines[0].engine)
         self.assertFalse(status)
 
-        from_syntax_without_tags = os.path.join(app_path, 'app',
-                                                'templates',
-                                                'from_syntax_without_tags.html')
+        from_syntax_without_tags = os.path.join(
+            app_path, 'app', 'templates', 'from_syntax_without_tags.html')
         status = process_template(from_syntax_without_tags,
                                   dt_engines[0].engine)
         self.assertTrue(status)

@@ -6,21 +6,15 @@ import io
 import os
 import sys
 from copy import deepcopy
-from distutils.version import StrictVersion
 from mimetypes import guess_type
-
-from pip import get_installed_distributions
-from tabulate import tabulate
 
 from django.apps import apps
 from django.conf import settings
 from django.template.backends.django import DjangoTemplates
-from django.template.base import InvalidTemplateLibrary
+from pip import get_installed_distributions
+from tabulate import tabulate
 
-from .settings import DJANGO_VERSION
-
-if StrictVersion(DJANGO_VERSION) > StrictVersion('1.8'):
-    from django.template.base import get_library
+from .compat import InvalidTemplateLibrary, get_templatetag_library
 
 
 def get_app(app_label):
@@ -170,8 +164,8 @@ def get_templatetag_members(template_name, loaded_modules, output=sys.stdout):
     filters = {}
     for module in loaded_modules:
         try:
-            lib = get_library(module)
-        except InvalidTemplateLibrary:
+            lib = get_templatetag_library(module)
+        except (AttributeError, InvalidTemplateLibrary):
             msg = ('Unable to locate the loaded library! Library: {}; '
                    'Template: {}\n').format(module, template_name)
             output.write(msg)

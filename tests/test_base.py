@@ -9,8 +9,8 @@ from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from ..base import Template
-from ..utils import get_contents
+from unload.base import Template
+from unload.utils import get_contents
 
 
 class TestBase(TestCase):
@@ -35,8 +35,8 @@ class TestBase(TestCase):
         cls.without_tags = os.path.join(app_templates, 'without_tags.html')
         cls.from_syntax_with_tags = os.path.join(app_templates,
                                                  'from_syntax_with_tags.html')
-        cls.from_syntax_without_tags = os.path.join(app_templates,
-                                                    'from_syntax_without_tags.html')
+        cls.from_syntax_without_tags = os.path.join(
+            app_templates, 'from_syntax_without_tags.html')
         cls.double_member_load = os.path.join(app_templates,
                                               'double_member_load.html')
         cls.only_filter = os.path.join(app_templates, 'only_filter.html')
@@ -624,4 +624,3 @@ class TestBase(TestCase):
             name=self.only_filter)
         self.assertEqual(only_filter.list_unutilized_items(),
                          ([], ['Unutilized module', 'Unutilized tag/filter']))
-

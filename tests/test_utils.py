@@ -5,33 +5,26 @@ from __future__ import unicode_literals
 import os
 import sys
 
-from django import VERSION as DJANGO_VERSION
 from django.apps.config import AppConfig
 from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.utils.six import StringIO
 
-from ..utils import (
-                     get_app,
-                     get_contents,
-                     get_djangotemplates_engines,
-                     get_filters,
-                     get_package_locations,
-                     get_template_files,
-                     get_templates,
-                     get_templatetag_members,
-                     output_as_table,
-                     output_message,
-                     output_template_name,
-                     update_dictionary
-                     )
+from unload.utils import (get_app,
+                          get_contents,
+                          get_djangotemplates_engines,
+                          get_filters,
+                          get_package_locations,
+                          get_template_files,
+                          get_templates,
+                          get_templatetag_members,
+                          output_as_table,
+                          output_message,
+                          output_template_name,
+                          update_dictionary)
 
 PYTHON_VERSION = sys.version_info
-
-if PYTHON_VERSION.major == 2:
-    from StringIO import StringIO
-elif PYTHON_VERSION.major == 3:
-    from io import StringIO
 
 
 class TestUtils(TestCase):
@@ -127,10 +120,8 @@ class TestUtils(TestCase):
         Get the directory path containing the installed 3rd party packages (in
         this instance the site-packages directory located in .tox/).
         """
-        end_of_path = ('.tox/py{0}{1}-django{2}{3}/lib/'
-                       'python{0}.{1}/site-packages').format(
-            PYTHON_VERSION.major, PYTHON_VERSION.minor,
-            DJANGO_VERSION[0], DJANGO_VERSION[1])
+        end_of_path = ('/lib/python{0}.{1}/site-packages').format(
+            PYTHON_VERSION.major, PYTHON_VERSION.minor)
         pkg_locations = get_package_locations()
         for location in pkg_locations:
             self.assertTrue(location.endswith(end_of_path))
